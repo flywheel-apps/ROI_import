@@ -1,17 +1,17 @@
 {
   "name": "import-roi",
-  "label": "Import ROIsba",
+  "label": "Import ROIs",
   "description": "A gear for importing metadata from a CSV file into flywheel objects",
   "author": "Flywheel SSE",
   "maintainer": "Flywheel <support@flywheel.io>",
   "license": "MIT",
   "source": "https://github.com/flywheel-apps/EP_MetadataImport",
   "url": "https://github.com/flywheel-apps/EP_MetadataImport",
-  "version": "1.0.0a",
+  "version": "beta-1.0.0",
   "custom": {
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/import_meatadata_b:1.0.0"   
+      "image": "flywheel/import_roi:1.0.0"   
     },
     "flywheel": {
       "suite": "Metadata I/O"
@@ -29,11 +29,6 @@
   },
   
   "config": {
-    "mapping_column": {
-      "description": "Name of the column header that has the container ID's (Default is the first column)",
-      "type": "string",
-      "default": ""
-    },
     "first_row": {
       "default": 1,
       "description": "The first row that contains data (usually the column headers)",

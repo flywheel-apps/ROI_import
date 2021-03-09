@@ -1,5 +1,6 @@
 import collections.abc
 import numpy as np
+import pprint
 from flywheel.rest import ApiException
 
 import logging
@@ -118,11 +119,8 @@ def import_data(fw, df, overwrite=False, dry_run=False):
                 success_counter += 1
             else:
 
-                log.debug(f"Data from CSV    :\n{current_info}")
-                update_data = update(current_info, data, overwrite)
-
-                log.debug(f"Data after update:\n{update_data}\n")
-                match.update_info(update_data)
+                log.info(f"Creating CSV")
+                log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
                 df.loc[df.index == row, "Gear_Status"] = "Success"
                 log.info(
                     "\n--------------------------------------------------\n"
@@ -130,11 +128,8 @@ def import_data(fw, df, overwrite=False, dry_run=False):
                     "==================================================\n"
                 )
 
+                roi.append_to_container(ses)
                 success_counter += 1
-
-            roi.append_to_container(ses)
-
-            success_counter += 1
 
         except Exception as e:
 

@@ -12,6 +12,8 @@ COPY manifest.json $FLYWHEEL
 COPY utils/load_data.py $FLYWHEEL
 COPY utils/import_data.py $FLYWHEEL
 COPY utils/flywheel_helpers.py $FLYWHEEL
-COPY utils/mapping_class.py $FLYWHEEL
+COPY utils/ROI_Template.py $FLYWHEEL
+COPY utils/fwobject_utils.py $FLYWHEEL
+COPY utils/csv_utils.py $FLYWHEEL
 
 
