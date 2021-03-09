@@ -1,0 +1,99 @@
+{
+  "name": "import-roi",
+  "label": "Import ROIsba",
+  "description": "A gear for importing metadata from a CSV file into flywheel objects",
+  "author": "Flywheel SSE",
+  "maintainer": "Flywheel <support@flywheel.io>",
+  "license": "MIT",
+  "source": "https://github.com/flywheel-apps/EP_MetadataImport",
+  "url": "https://github.com/flywheel-apps/EP_MetadataImport",
+  "version": "1.0.0a",
+  "custom": {
+    "gear-builder": {
+      "category": "analysis",
+      "image": "flywheel/import_meatadata_b:1.0.0"   
+    },
+    "flywheel": {
+      "suite": "Metadata I/O"
+    }
+  },
+  
+  "inputs": {
+    "csv_file": {
+      "base": "file",
+      "optional": false
+    },    
+    "key": {
+      "base": "api-key"
+    }
+  },
+  
+  "config": {
+    "mapping_column": {
+      "description": "Name of the column header that has the container ID's (Default is the first column)",
+      "type": "string",
+      "default": ""
+    },
+    "first_row": {
+      "default": 1,
+      "description": "The first row that contains data (usually the column headers)",
+      "type": "integer"
+    },
+    "delimiter": {
+      "description": "delimiter",
+      "type": "string",
+      "enum": [
+                "/t",
+                ",",
+                "/s"
+            ],
+       "default": ","
+
+    },
+    "metadata_destination": {
+      "optional": true,
+      "description": "The location of the metadata fields to be uploaded to under 'info'.\nDefaults to CSV file name.\n  Sub-categories are specified with a period, e.x. 'Health.InitialAssessment'",
+      "type": "string"
+    },
+    "overwrite": {
+      "description": "Overwrite existing metadata information",
+      "type": "boolean",
+      "default": false
+    },
+    "container_type": {
+      "description": "The type of container listed in in the mapping column\n NOTE: (If mapping files, select the level of container the files are stored on, and check the 'attached_files' option)",
+      "type": "string",
+      "enum": [
+        "project",
+        "subject",
+        "session",
+        "acquisition"
+      ],
+      "optional": false
+    },
+    "gear_log_level": {
+      "description": "The level at which the gear will log.",
+      "type": "string",
+      "enum": [
+        "INFO",
+        "DEBUG"
+      ],
+      "default": "INFO"
+    },
+    
+    "attached_files": {
+      "description": "Check this if the objects are files attached to the container level specified in 'container_type'",
+      "type": "boolean",
+      "default": false
+    },
+    "dry_run": {
+      "description": "Only log what changes would be made, do not update anything.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "environment": {
+
+  },
+  "command": "python3.7 /flywheel/v0/run.py"
+}
