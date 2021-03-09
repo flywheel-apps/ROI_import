@@ -8,11 +8,12 @@ from utils import flywheel_helpers as fh
 log = logging.getLogger("__main__")
 
 
-
 def get_uids_from_filename(file):
-    id_dict = {"SeriesInstanceUID": None,
-               "SOPInstanceUID": None,
-               "StudyInstanceUID": None}
+    id_dict = {
+        "SeriesInstanceUID": None,
+        "SOPInstanceUID": None,
+        "StudyInstanceUID": None,
+    }
 
     for id in id_dict.keys():
         value = file.info.get(id)
@@ -22,13 +23,15 @@ def get_uids_from_filename(file):
 
 
 def get_objects_for_processing(fw, container, level, get_files):
-    log.debug(f'Got container {container.label}')
+    log.debug(f"Got container {container.label}")
     child_containers = fh.get_containers_at_level(fw, container, level)
     log.debug(f"Initial Pass: found {len(child_containers)} containers")
     if get_files:
         resulting_containers = []
         for cc in child_containers:
-            resulting_containers.extend(fh.get_containers_at_level(fw, cc.reload(), "file"))
+            resulting_containers.extend(
+                fh.get_containers_at_level(fw, cc.reload(), "file")
+            )
 
     else:
         resulting_containers = child_containers
@@ -43,7 +46,7 @@ def get_objects_for_processing(fw, container, level, get_files):
 
 
 def expand_metadata(meta_string, container):
-    metas = meta_string.split('.')
+    metas = meta_string.split(".")
     ct = container.container_type
     name = fh.get_name(container)
 
@@ -55,9 +58,10 @@ def expand_metadata(meta_string, container):
         if val:
             temp_container = val
         else:
-            log.warning(f'No metadata value {meta_string} found for {ct} {name}')
-            return (None)
-    return (val)
+            log.warning(f"No metadata value {meta_string} found for {ct} {name}")
+            return None
+    return val
+
 
 def update(d, u, overwrite):
     for k, v in u.items():
@@ -81,16 +85,15 @@ def update(d, u, overwrite):
 
     return d
 
+
 def cleanse_the_filthy_numpy(dict):
     for k, v in dict.items():
         if isinstance(v, collections.abc.Mapping):
-            log.info(f'descending into {v}')
+            log.info(f"descending into {v}")
             dict[k] = cleanse_the_filthy_numpy(dict.get(k, {}))
         else:
             # Flywheel doesn't like numpy data types:
             if type(v).__module__ == np.__name__:
                 v = v.item()
                 dict[k] = v
-    
-    return(dict)
-    
+    return dict

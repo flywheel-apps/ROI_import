@@ -48,28 +48,7 @@
                 "/s"
             ],
        "default": ","
-
-    },
-    "metadata_destination": {
-      "optional": true,
-      "description": "The location of the metadata fields to be uploaded to under 'info'.\nDefaults to CSV file name.\n  Sub-categories are specified with a period, e.x. 'Health.InitialAssessment'",
-      "type": "string"
-    },
-    "overwrite": {
-      "description": "Overwrite existing metadata information",
-      "type": "boolean",
-      "default": false
-    },
-    "container_type": {
-      "description": "The type of container listed in in the mapping column\n NOTE: (If mapping files, select the level of container the files are stored on, and check the 'attached_files' option)",
-      "type": "string",
-      "enum": [
-        "project",
-        "subject",
-        "session",
-        "acquisition"
-      ],
-      "optional": false
+      
     },
     "gear_log_level": {
       "description": "The level at which the gear will log.",
@@ -81,11 +60,6 @@
       "default": "INFO"
     },
     
-    "attached_files": {
-      "description": "Check this if the objects are files attached to the container level specified in 'container_type'",
-      "type": "boolean",
-      "default": false
-    },
     "dry_run": {
       "description": "Only log what changes would be made, do not update anything.",
       "type": "boolean",

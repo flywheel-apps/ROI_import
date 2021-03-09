@@ -1,14 +1,12 @@
-
-
 def get_containers_at_level(fw, container, level):
     try:
         ct = container.container_type
     except Exception:
-        ct = 'analysis'
-    
+        ct = "analysis"
+
     if ct == level:
-        return([container])
-    
+        return [container]
+
     if level == "acquisition":
         # Expanding To Children
         if ct == "project" or ct == "subject":
@@ -16,19 +14,19 @@ def get_containers_at_level(fw, container, level):
             temp_containers = container.sessions()
             for cont in temp_containers:
                 containers.extend(cont.acquisitions())
-                
-        elif ct == 'session':
+
+        elif ct == "session":
             containers = container.acquisitions()
-            
+
         # Shrink to parent
         else:
             containers = [get_acquisition(fw, container)]
 
     elif level == "session":
         # Expanding To Children
-        if ct == "project" or 'subject':
+        if ct == "project" or "subject":
             containers = container.sessions()
-        
+
         # Shrink to parent
         else:
             containers = [get_session(fw, container)]
@@ -37,27 +35,22 @@ def get_containers_at_level(fw, container, level):
         # Expanding To Children
         if ct == "project":
             containers = container.subjects()
-        
+
         # Shrink to parent
         else:
             containers = [get_subject(fw, container)]
 
-    elif level == 'analysis':
+    elif level == "analysis":
         containers = container.analyses
-    elif level == 'file':
+    elif level == "file":
         containers = container.files
-    
+
     return containers
-            
- 
-
-
-
 
 
 def get_children(container):
 
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
     if ct == "project":
         children = container.subjects()
     elif ct == "subject":
@@ -74,7 +67,7 @@ def get_children(container):
 
 def get_parent(fw, container):
 
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
 
     if ct == "project":
         parent = fw.get_group(container.group)
@@ -86,7 +79,7 @@ def get_parent(fw, container):
         parent = container.get_session(container.session)
     elif ct == "analysis":
         parent = fw.get(container.parent["id"])
-    elif ct == 'file':
+    elif ct == "file":
         parent = container.parent.reload()
     else:
         parent = None
@@ -96,7 +89,7 @@ def get_parent(fw, container):
 
 def get_subject(fw, container):
 
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
 
     if ct == "project":
         subject = None
@@ -120,7 +113,7 @@ def get_subject(fw, container):
 
 def get_session(fw, container):
 
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
 
     if ct == "project":
         session = None
@@ -142,15 +135,11 @@ def get_session(fw, container):
     return session
 
 
-
-
-
-
 def get_acquisition(fw, container):
-    ct = container.get('container_type', 'analysis')
-    
+    ct = container.get("container_type", "analysis")
+
     print(container.container_type)
-    
+
     if ct == "project":
         acquisition = None
     elif ct == "subject":
@@ -172,7 +161,7 @@ def get_acquisition(fw, container):
 
 
 def get_analysis(fw, container):
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
 
     if ct == "project":
         analysis = None
@@ -191,7 +180,7 @@ def get_analysis(fw, container):
 
 
 def get_project(fw, container):
-    ct = container.get('container_type', 'analysis')
+    ct = container.get("container_type", "analysis")
 
     if ct == "project":
         project = container
@@ -225,42 +214,39 @@ def get_parent_at_level(fw, container, level):
     return parent
 
 
-
 def get_level(fw, id, level):
-    if level == 'project':
+    if level == "project":
         container = fw.get_project(id)
-    elif level == 'subject':
+    elif level == "subject":
         container = fw.get_subject(id)
-    elif level == 'session':
+    elif level == "session":
         container = fw.get_session(id)
-    elif level == 'acquisition':
+    elif level == "acquisition":
         container = fw.get_acquisition(id)
-    elif level == 'analysis':
+    elif level == "analysis":
         container = fw.get_analysis(id)
     else:
         container = None
-    
+
     return container
-    
-    
+
 
 def generate_path_to_container(
-        fw,
-        container,
-        group = None,
-        project = None,
-        subject = None,
-        session = None,
-        acquisition = None,
-        analysis = None
+    fw,
+    container,
+    group=None,
+    project=None,
+    subject=None,
+    session=None,
+    acquisition=None,
+    analysis=None,
 ):
-    
+
     try:
         ct = container.container_type
     except Exception:
-        ct = 'analysis'
-    
-    
+        ct = "analysis"
+
     if ct == "file":
         path_to_file = generate_path_to_container(
             fw,
@@ -270,74 +256,78 @@ def generate_path_to_container(
             subject,
             session,
             acquisition,
-            analysis)
+            analysis,
+        )
 
         fw_path = f"{path_to_file}/{container.name}"
 
     else:
-        fw_path = ''
-        
+        fw_path = ""
+
         if group is not None:
             append = group
         elif group is None and container.parents.group is not None:
             append = container.parents.group
         else:
-            append = ''
-        
+            append = ""
+
         fw_path += append
-        
+
         if project is not None:
             append = f"/{project}"
         elif project is None and container.parents.project is not None:
             project = get_project(fw, container)
             append = f"/{project.label}"
         else:
-            append = ''
-        
+            append = ""
+
         fw_path += append
-        
+
         if subject is not None:
             append = f"/{subject}"
         elif subject is None and container.parents.subject is not None:
             subject = get_subject(fw, container)
             append = f"/{subject.label}"
         else:
-            append = ''
-        
+            append = ""
+
         fw_path += append
-        
+
         if session is not None:
             append = f"/{session}"
         elif session is None and container.parents.session is not None:
             session = get_session(fw, container)
             append = f"/{session.label}"
         else:
-            append = ''
-        
+            append = ""
+
         fw_path += append
-        
+
         if acquisition is not None:
             append = f"/{acquisition}"
         elif acquisition is None and container.parents.acquisition is not None:
             acquisition = get_acquisition(fw, container)
             append = f"/{acquisition.label}"
         else:
-            append = ''
+            append = ""
 
         fw_path += append
-        
+
         if analysis is not None:
             append = f"/{analysis}"
-        elif analysis is None and container.get('container_type', 'analysis') == 'analysis':
+        elif (
+            analysis is None
+            and container.get("container_type", "analysis") == "analysis"
+        ):
             analysis = container.label
             append = f"/{analysis}"
         else:
-            analysis = ''
-        
+            analysis = ""
+
         fw_path += append
-        
+
         # append = f"/{container.label}"
-        # 
+        #
         # fw_path += append
-        
+
     return fw_path

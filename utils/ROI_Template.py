@@ -123,16 +123,16 @@ class Handle:
         self.end.highlight = end.get("highlight", True)
 
         text = kwargs.get("textBox", {})
-        if 'x' not in text:
-            text['x'] = start.get('x')
-        if 'y' not in text:
-            text['y'] = start.get('y') - (start.get('y') - end.get('y'))/2.0
+        if "x" not in text:
+            text["x"] = start.get("x")
+        if "y" not in text:
+            text["y"] = start.get("y") - (start.get("y") - end.get("y")) / 2.0
         self.textBox = TextBox(**text)
 
         self.initialRotation = kwargs.get("initialRotation", 0)
 
     def to_dict(self):
-        
+
         output_dict = {
             "start": self.start.to_dict(),
             "end": self.end.to_dict(),
@@ -140,7 +140,6 @@ class Handle:
             "initialRotation": self.initialRotation,
         }
         return output_dict
-    
 
 
 class ROI:
@@ -153,15 +152,14 @@ class ROI:
             "SeriesInstanceUID",
             "SOPInstanceUID",
             "StudyInstanceUID",
-            "ROI_type"
+            "ROI_type",
         ]
 
         self.forbidden_keys = ["imagePath", "uuid", "_id"]
-        self.namespace = 'ohifViewer'
-        
+        self.namespace = "ohifViewer"
 
     def roi_from_dict(self, **kwargs):
-        
+
         for fk in self.forbidden_keys:
             if fk in kwargs:
                 log.error(f"Forbidden key {fk} found in {kwargs.keys()}")
@@ -176,9 +174,8 @@ class ROI:
         self.seriesInstanceUid = kwargs.pop("SeriesInstanceUID")
         self.sopInstanceUid = kwargs.pop("SOPInstanceUID")
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
-        
-        
-        self.type = kwargs.pop('ROI_type')
+
+        self.type = kwargs.pop("ROI_type")
 
         # I don't understand either.
         path_delimiter = "$$$"
@@ -199,56 +196,59 @@ class ROI:
         self.active = kwargs.pop("active", True)
         self.description = kwargs.pop("description", None)
         self.location = kwargs.pop("location", None)
-        self.flywheel_origin = kwargs.pop(
-            "flywheelOrigin", {"id": "CSV to ROI Gear", "type": "gear"}
-        )
+
+        fw_origin = dict()
+        if "User_Origin" in kwargs:
+            fw_origin["type"] = "user"
+            fw_origin["id"] = kwargs.pop("User_Origin")
+
+        else:
+            fw_origin["type"] = "gear"
+            fw_origin["id"] = kwargs.pop("CSV to ROI Gear")
 
         self.kwargs = kwargs
-        
-        
 
     def to_dict(self):
 
         output_dict = {
-
-                        "handles": self.handle.to_dict(),
-                        "flywheelOrigin": self.flywheel_origin,
-                        "seriesInstanceUid": self.seriesInstanceUid,
-                        "studyInstanceUid": self.studyInstanceUid,
-                        "sopInstanceUid": self.sopInstanceUid,
-                        "imagePath": self.imagePath,
-                        "visible": self.visible,
-                        "description": self.description,
-                        "location": self.location,
-                        "toolType": self.type
+            "handles": self.handle.to_dict(),
+            "flywheelOrigin": self.flywheel_origin,
+            "seriesInstanceUid": self.seriesInstanceUid,
+            "studyInstanceUid": self.studyInstanceUid,
+            "sopInstanceUid": self.sopInstanceUid,
+            "imagePath": self.imagePath,
+            "visible": self.visible,
+            "description": self.description,
+            "location": self.location,
+            "toolType": self.type,
         }
-        
-        return(output_dict)
-        
+
+        return output_dict
+
     def append_to_container(self, container):
-        
+
         info = container.info
-        
+
         roi_dict = self.to_dict()
         clean_dict = fu.cleanse_the_filthy_numpy(roi_dict)
-        
+
         if self.namespace not in info:
             info[self.namespace] = {}
-        if 'measurements' not in info[self.namespace]:
-            info[self.namespace]['measurements'] = {}
-        if self.type not in info[self.namespace]['measurements']:
-            info[self.namespace]['measurements'][self.type] = []
-            
-        if not isinstance(info[self.namespace]['measurements'][self.type], list):
-            log.info('namespace (ROI type) is not list.  Resetting')
-            info[self.namespace]['measurements'][self.type] = [clean_dict]
+        if "measurements" not in info[self.namespace]:
+            info[self.namespace]["measurements"] = {}
+        if self.type not in info[self.namespace]["measurements"]:
+            info[self.namespace]["measurements"][self.type] = []
+
+        if not isinstance(info[self.namespace]["measurements"][self.type], list):
+            log.info("namespace (ROI type) is not list.  Resetting")
+            info[self.namespace]["measurements"][self.type] = [clean_dict]
         else:
-            
-            log.info('Appending to namespace (ROI type)')
-            info[self.namespace]['measurements'][self.type].append(clean_dict)
-        
-        log.info('updating container...')
-        
+
+            log.info("Appending to namespace (ROI type)")
+            info[self.namespace]["measurements"][self.type].append(clean_dict)
+
+        log.info("updating container...")
+
         container.update_info(info)
 
         pass
