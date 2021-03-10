@@ -5,8 +5,8 @@
   "author": "Flywheel SSE",
   "maintainer": "Flywheel <support@flywheel.io>",
   "license": "MIT",
-  "source": "https://github.com/flywheel-apps/EP_MetadataImport",
-  "url": "https://github.com/flywheel-apps/EP_MetadataImport",
+  "source": "https://github.com/flywheel-apps/ROI_import",
+  "url": "https://github.com/flywheel-apps/ROI_import",
   "version": "beta-1.0.0c",
   "custom": {
     "gear-builder": {
