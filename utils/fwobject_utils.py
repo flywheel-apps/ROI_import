@@ -22,6 +22,39 @@ def get_uids_from_filename(file):
     return id_dict
 
 
+def get_roi_number(session, roi_type):
+    
+    session = session.reload()
+    sinfo = session.info
+
+    if (
+        "ohifViewer" in sinfo
+        and "measurements" in sinfo["ohifViewer"]
+        and roi_type in sinfo["ohifViewer"]["measurements"]
+    ):
+
+        rois = sinfo["ohifViewer"]["measurements"][roi_type]
+        if len(rois) == 0:
+            new_num = 1
+
+        else:
+            lesion_nums = [r.get("lesionNamingNumber", -1) for r in rois]
+            meausrement_nums = [r.get("measurementNumber", -1) for r in rois]
+
+            mlesion = max(lesion_nums)
+            mnum = max(meausrement_nums)
+
+            new_num = max([mlesion, mnum])
+            new_num += 1
+
+    else:
+        new_num = 1
+
+    number_dict = {"lesionNamingNumber": new_num, "measurementNumber": new_num}
+    
+    return number_dict
+
+
 def get_objects_for_processing(fw, container, level, get_files):
     log.debug(f"Got container {container.label}")
     child_containers = fh.get_containers_at_level(fw, container, level)

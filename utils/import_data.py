@@ -106,7 +106,7 @@ def import_data(fw, df, overwrite=False, dry_run=False):
             else:
                 ses = fw.get_session(parent.parents.session)
 
-            roi = cu.get_roi_from_row(series, match)
+            roi = cu.get_roi_from_row(series, match, ses)
 
             if dry_run:
                 log.info(f"Would modify info on {address}")

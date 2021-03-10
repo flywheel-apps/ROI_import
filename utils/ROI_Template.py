@@ -115,11 +115,11 @@ class Handle:
             pass
 
         start = kwargs.get("start", {})
-        self.start = Coords(start.get("x"), start.get("y"), start.get("active"))
+        self.start = Coords(start.get("x"), start.get("y"), start.get("active", True))
         self.start.highlight = start.get("highlight", True)
 
         end = kwargs.get("end", {})
-        self.end = Coords(end.get("x"), end.get("y"), end.get("active"))
+        self.end = Coords(end.get("x"), end.get("y"), end.get("active", False))
         self.end.highlight = end.get("highlight", True)
 
         text = kwargs.get("textBox", {})
@@ -141,6 +141,40 @@ class Handle:
         }
         return output_dict
 
+class Cached_stats:
+    
+    def __init__(self, handle):
+        x_limits = (handle.start.x, handle.end.x)
+        y_limits = (handle.start.y, handle.end.y)
+        
+        print(y_limits)
+        
+        xmax = max(x_limits)
+        ymax = max(y_limits)
+        
+        xmin = min(x_limits)
+        ymin = min(y_limits)
+        
+        self.area = (xmax-xmin) * (ymax - ymin)
+        self.count = (round(xmax) - round(xmin)) * (round(ymax)-round(ymin))
+        self.max = 0
+        self.min = 0
+        self.mean = 0
+        self.stdDev = 0
+        self.variance = 0
+    
+    def to_dict(self):
+        output_dict = {
+            'area': self.area,
+            'count': self.count,
+            'max': self.max,
+            'mean': self.mean,
+            'min': self.min,
+            'stdDev': self.stdDev,
+            'variance': self.variance
+        }
+        return output_dict
+    
 
 class ROI:
     def __init__(self):
@@ -158,6 +192,46 @@ class ROI:
         self.forbidden_keys = ["imagePath", "uuid", "_id"]
         self.namespace = "ohifViewer"
 
+        self.handle = None
+        self.seriesInstanceUid = None
+        self.sopInstanceUid = None
+        self.studyInstanceUid = None
+        self.imagePath = None
+
+        self.patientId = None
+        self.toolType = None
+
+        # Some important values we'll call out specifically for consistency
+        self.visible = None
+        self.active = None
+        self.description = None
+        self.location = None
+        self.flywheelOrigin = None
+        self.lesionNamingNumber = None
+        self.measurementNumber = None
+        self.timepointId = None
+        self.cachedStats = None
+        self.kwargs = None
+        
+    def generate_imagePath(self):
+
+        # I don't understand either.
+        path_delimiter = "$$$"
+        path_suffix = "0"
+
+        imagePath = (
+            f"{self.studyInstanceUid}"
+            f"{path_delimiter}"
+            f"{self.seriesInstanceUid}"
+            f"{path_delimiter}"
+            f"{self.sopInstanceUid}"
+            f"{path_delimiter}"
+            f"{path_suffix}"
+        )
+        
+        return imagePath
+        
+
     def roi_from_dict(self, **kwargs):
 
         for fk in self.forbidden_keys:
@@ -174,22 +248,11 @@ class ROI:
         self.seriesInstanceUid = kwargs.pop("SeriesInstanceUID")
         self.sopInstanceUid = kwargs.pop("SOPInstanceUID")
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
+        self.patientId = kwargs.pop('patientId')
 
         self.type = kwargs.pop("ROI_type")
 
-        # I don't understand either.
-        path_delimiter = "$$$"
-        path_suffix = "0"
-
-        self.imagePath = (
-            f"{self.studyInstanceUid}"
-            f"{path_delimiter}"
-            f"{self.seriesInstanceUid}"
-            f"{path_delimiter}"
-            f"{self.sopInstanceUid}"
-            f"{path_delimiter}"
-            f"{path_suffix}"
-        )
+        self.imagePath = self.generate_imagePath()
 
         # Some important values we'll call out specifically for consistency
         self.visible = kwargs.pop("visible", True)
@@ -201,18 +264,25 @@ class ROI:
         if "User_Origin" in kwargs:
             fw_origin["type"] = "user"
             fw_origin["id"] = kwargs.pop("User_Origin")
-
         else:
             fw_origin["type"] = "gear"
-            fw_origin["id"] = kwargs.pop("CSV to ROI Gear")
-
+            fw_origin["id"] = "CSV to ROI Gear"
+        
+        self.flywheelOrigin = fw_origin
+        self.lesionNamingNumber = kwargs.pop("lesionNamingNumber")
+        self.measurementNumber = kwargs.pop("measurementNumber")
+        self.timepointId = kwargs.pop("timepointId")
+        
+        self.cachedStats = Cached_stats(self.handle)
+        
         self.kwargs = kwargs
 
     def to_dict(self):
 
         output_dict = {
             "handles": self.handle.to_dict(),
-            "flywheelOrigin": self.flywheel_origin,
+            "cachedStats": self.cachedStats.to_dict(),
+            "flywheelOrigin": self.flywheelOrigin,
             "seriesInstanceUid": self.seriesInstanceUid,
             "studyInstanceUid": self.studyInstanceUid,
             "sopInstanceUid": self.sopInstanceUid,
@@ -220,7 +290,11 @@ class ROI:
             "visible": self.visible,
             "description": self.description,
             "location": self.location,
-            "toolType": self.type,
+            "toolType": self.toolType,
+            "lesionNamingNumber": self.lesionNamingNumber,
+            "measurementNumber": self.measurementNumber,
+            "timepointId": self.timepointId,
+            "patientId": self.patientId
         }
 
         return output_dict
