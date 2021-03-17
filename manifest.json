@@ -7,11 +7,11 @@
   "license": "MIT",
   "source": "https://github.com/flywheel-apps/ROI_import",
   "url": "https://github.com/flywheel-apps/ROI_import",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "custom": {
     "gear-builder": {
       "category": "analysis",
-      "image": "flywheel/import_roi:1.0.0"   
+      "image": "flywheel/import_roi:1.0.2"   
     },
     "flywheel": {
       "suite": "Metadata I/O"
