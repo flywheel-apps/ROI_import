@@ -250,7 +250,7 @@ class ROI:
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
         self.patientId = kwargs.pop('patientId')
 
-        self.type = kwargs.pop("ROI_type")
+        self.toolType = kwargs.pop("ROI_type")
 
         self.imagePath = self.generate_imagePath()
 
@@ -310,16 +310,16 @@ class ROI:
             info[self.namespace] = {}
         if "measurements" not in info[self.namespace]:
             info[self.namespace]["measurements"] = {}
-        if self.type not in info[self.namespace]["measurements"]:
-            info[self.namespace]["measurements"][self.type] = []
+        if self.toolType not in info[self.namespace]["measurements"]:
+            info[self.namespace]["measurements"][self.toolType] = []
 
-        if not isinstance(info[self.namespace]["measurements"][self.type], list):
+        if not isinstance(info[self.namespace]["measurements"][self.toolType], list):
             log.info("namespace (ROI type) is not list.  Resetting")
-            info[self.namespace]["measurements"][self.type] = [clean_dict]
+            info[self.namespace]["measurements"][self.toolType] = [clean_dict]
         else:
 
             log.info("Appending to namespace (ROI type)")
-            info[self.namespace]["measurements"][self.type].append(clean_dict)
+            info[self.namespace]["measurements"][self.toolType].append(clean_dict)
 
         log.info("updating container...")
 

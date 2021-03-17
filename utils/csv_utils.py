@@ -77,8 +77,6 @@ def get_roi_from_row(series, file, session):
     roi_dict.update(roi_number_dict)
     roi_dict['timepointId'] = 'TimepointId'
     
-    
-    
     roi = ROI()
     roi.roi_from_dict(**roi_dict)
 
@@ -93,9 +91,9 @@ def save_df_to_csv(df, output_dir):
 def get_fw_path(series):
 
     object_name = series.get(MAPPING_COLUMN)
-    group_name = series.get("Group_Label")
-    project_name = series.get("Project_Label")
-    subject_label = series.get("Subject_Label")
-    session_label = series.get("Session_Label")
+    group_name = series.get("Group")
+    project_name = series.get("Project")
+    subject_label = series.get("Subject")
+    session_label = series.get("Sessionl")
 
     return object_name, group_name, project_name, subject_label, session_label
