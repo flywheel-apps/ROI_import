@@ -94,6 +94,6 @@ def get_fw_path(series):
     group_name = series.get("Group")
     project_name = series.get("Project")
     subject_label = series.get("Subject")
-    session_label = series.get("Sessionl")
+    session_label = series.get("Session")
 
     return object_name, group_name, project_name, subject_label, session_label

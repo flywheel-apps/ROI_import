@@ -111,6 +111,7 @@ def import_data(fw, df, overwrite=False, dry_run=False):
             if dry_run:
                 log.info(f"Would modify info on {address}")
                 df.loc[df.index == row, "Gear_Status"] = "Dry-Run Success"
+                df.loc[df.index == row, "Gear_FW_Location"] = address
                 log.info(
                     "\n--------------------------------------------------\n"
                     "DRYRUN STATUS: Success\n"
@@ -122,6 +123,8 @@ def import_data(fw, df, overwrite=False, dry_run=False):
                 log.info(f"Creating CSV")
                 log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
                 df.loc[df.index == row, "Gear_Status"] = "Success"
+                df.loc[df.index == row, "Gear_FW_Location"] = address
+
                 log.info(
                     "\n--------------------------------------------------\n"
                     "STATUS: Success\n"
