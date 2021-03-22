@@ -120,19 +120,26 @@ def import_data(fw, df, overwrite=False, dry_run=False):
                 success_counter += 1
             else:
 
-                log.info(f"Creating CSV")
+                log.info(f"Creating ROI")
                 log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
-                df.loc[df.index == row, "Gear_Status"] = "Success"
-                df.loc[df.index == row, "Gear_FW_Location"] = address
+                try:
+                    roi.append_to_container(ses)
+                    success_counter += 1
+                    df.loc[df.index == row, "Gear_Status"] = "Success"
+                    df.loc[df.index == row, "Gear_FW_Location"] = address
 
-                log.info(
-                    "\n--------------------------------------------------\n"
-                    "STATUS: Success\n"
-                    "==================================================\n"
-                )
+                    log.info(
+                        "\n--------------------------------------------------\n"
+                        "STATUS: Success\n"
+                        "==================================================\n"
+                    )
+                except Exception as e:
+                    log.warning('Error uploading metadata')
+                    log.exception(e)
+                
 
-                roi.append_to_container(ses)
-                success_counter += 1
+
+
 
         except Exception as e:
 

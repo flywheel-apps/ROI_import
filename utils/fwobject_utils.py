@@ -7,7 +7,6 @@ from utils import flywheel_helpers as fh
 
 log = logging.getLogger("__main__")
 
-
 def get_uids_from_filename(file):
     id_dict = {
         "SeriesInstanceUID": None,
@@ -122,7 +121,6 @@ def update(d, u, overwrite):
 def cleanse_the_filthy_numpy(dict):
     for k, v in dict.items():
         if isinstance(v, collections.abc.Mapping):
-            log.info(f"descending into {v}")
             dict[k] = cleanse_the_filthy_numpy(dict.get(k, {}))
         else:
             # Flywheel doesn't like numpy data types:

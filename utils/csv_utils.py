@@ -5,20 +5,20 @@ from utils.ROI_Template import ROI
 import utils.fwobject_utils as fu
 
 log = logging.getLogger("__main__")
-MAPPING_COLUMN = "img_file_name"
+MAPPING_COLUMN = "File"
 
 
 def get_handle_from_row(series):
     start_dict = {
-        "x": panda_pop(series, "X_min"),
-        "y": panda_pop(series, "Y_min"),
+        "x": panda_pop(series, "X min"),
+        "y": panda_pop(series, "Y min"),
         "active": panda_pop(series, "active", True),
         "highlight": panda_pop(series, "highlight", False),
     }
-    print(start_dict)
+
     end_dict = {
-        "x": panda_pop(series, "X_max"),
-        "y": panda_pop(series, "Y_max"),
+        "x": panda_pop(series, "X max"),
+        "y": panda_pop(series, "Y max"),
         "active": panda_pop(series, "active", True),
         "highlight": panda_pop(series, "highlight", False),
     }
@@ -73,7 +73,7 @@ def get_roi_from_row(series, file, session):
     roi_dict.update(series)
     roi_dict['patientId'] = file.info.get('PatientID')
     
-    roi_number_dict = fu.get_roi_number(session, roi_dict.get('ROI_type'))
+    roi_number_dict = fu.get_roi_number(session, roi_dict.get('ROI type'))
     roi_dict.update(roi_number_dict)
     roi_dict['timepointId'] = 'TimepointId'
     
@@ -95,5 +95,4 @@ def get_fw_path(series):
     project_name = series.get("Project")
     subject_label = series.get("Subject")
     session_label = series.get("Session")
-
     return object_name, group_name, project_name, subject_label, session_label

@@ -186,7 +186,7 @@ class ROI:
             "SeriesInstanceUID",
             "SOPInstanceUID",
             "StudyInstanceUID",
-            "ROI_type",
+            "ROI type",
         ]
 
         self.forbidden_keys = ["imagePath", "uuid", "_id"]
@@ -250,7 +250,7 @@ class ROI:
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
         self.patientId = kwargs.pop('patientId')
 
-        self.toolType = kwargs.pop("ROI_type")
+        self.toolType = kwargs.pop("ROI type")
 
         self.imagePath = self.generate_imagePath()
 
@@ -261,9 +261,9 @@ class ROI:
         self.location = kwargs.pop("location", None)
 
         fw_origin = dict()
-        if "User_Origin" in kwargs:
+        if "User Origin" in kwargs:
             fw_origin["type"] = "user"
-            fw_origin["id"] = kwargs.pop("User_Origin")
+            fw_origin["id"] = kwargs.pop("User Origin")
         else:
             fw_origin["type"] = "gear"
             fw_origin["id"] = "CSV to ROI Gear"
