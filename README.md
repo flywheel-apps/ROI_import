@@ -52,6 +52,9 @@ Flywheel the file is that the ROI is being attached to.
  the flywheel path displayed at the top of the pate when viewing a flywheel project.
  This is highlighted in red in the picture below. 
  
+ ![Flywheel Path](https://github.com/flywheel-apps/ROI_import/blob/main/content/fw_project_path.png)
+
+ 
  - **Subject**: The flywheel *Subject Label* of the subject that contains the file.
  
  - **Session**: The flywheel *Session Label* of the session that contains the file.
@@ -63,7 +66,6 @@ Flywheel the file is that the ROI is being attached to.
   created this ROI
 
 
-![Flywheel Path](https://github.com/flywheel-apps/ROI_import/blob/main/content/fw_project_path.png)
 
 
 ### ROI Columns:
@@ -90,6 +92,8 @@ the OHIF viewer.
 - **visible**: True or False, will determine if the ROI renders when loading the image.
 
 Any other columns will be added as metadata in the ROI object.
+
+See "Sample.csv" for an example csv file
 
 *FORBIDDEN*:
 The following column headers are forbidden and will not be included:
