@@ -141,42 +141,48 @@ class Handle:
         }
         return output_dict
 
+
 class Cached_stats:
-    
     def __init__(self, handle):
         x_limits = (handle.start.x, handle.end.x)
         y_limits = (handle.start.y, handle.end.y)
-        
+
         print(y_limits)
-        
+
         xmax = max(x_limits)
         ymax = max(y_limits)
-        
+
         xmin = min(x_limits)
         ymin = min(y_limits)
-        
-        self.area = (xmax-xmin) * (ymax - ymin)
-        self.count = (round(xmax) - round(xmin)) * (round(ymax)-round(ymin))
+
+        self.area = (xmax - xmin) * (ymax - ymin)
+        self.count = (round(xmax) - round(xmin)) * (round(ymax) - round(ymin))
         self.max = 0
         self.min = 0
         self.mean = 0
         self.stdDev = 0
         self.variance = 0
-    
+
     def to_dict(self):
         output_dict = {
-            'area': self.area,
-            'count': self.count,
-            'max': self.max,
-            'mean': self.mean,
-            'min': self.min,
-            'stdDev': self.stdDev,
-            'variance': self.variance
+            "area": self.area,
+            "count": self.count,
+            "max": self.max,
+            "mean": self.mean,
+            "min": self.min,
+            "stdDev": self.stdDev,
+            "variance": self.variance,
         }
         return output_dict
-    
+
 
 class ROI:
+    """
+    ROI class that essentially stores all the information you need to make and ROI and
+    has the ability to spit it back out as a dict.  Since it takes a dictionary as an input,
+    this is a little redundant, but I honestly thought this would be a more complicated process.
+    """
+
     def __init__(self):
 
         log.info("Initializing ROI")
@@ -212,7 +218,7 @@ class ROI:
         self.timepointId = None
         self.cachedStats = None
         self.kwargs = None
-        
+
     def generate_imagePath(self):
 
         # I don't understand either.
@@ -228,9 +234,8 @@ class ROI:
             f"{path_delimiter}"
             f"{path_suffix}"
         )
-        
+
         return imagePath
-        
 
     def roi_from_dict(self, **kwargs):
 
@@ -248,7 +253,7 @@ class ROI:
         self.seriesInstanceUid = kwargs.pop("SeriesInstanceUID")
         self.sopInstanceUid = kwargs.pop("SOPInstanceUID")
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
-        self.patientId = kwargs.pop('patientId')
+        self.patientId = kwargs.pop("patientId")
 
         self.toolType = kwargs.pop("ROI type")
 
@@ -267,14 +272,14 @@ class ROI:
         else:
             fw_origin["type"] = "gear"
             fw_origin["id"] = "CSV to ROI Gear"
-        
+
         self.flywheelOrigin = fw_origin
         self.lesionNamingNumber = kwargs.pop("lesionNamingNumber")
         self.measurementNumber = kwargs.pop("measurementNumber")
         self.timepointId = kwargs.pop("timepointId")
-        
+
         self.cachedStats = Cached_stats(self.handle)
-        
+
         self.kwargs = kwargs
 
     def to_dict(self):
@@ -294,7 +299,7 @@ class ROI:
             "lesionNamingNumber": self.lesionNamingNumber,
             "measurementNumber": self.measurementNumber,
             "timepointId": self.timepointId,
-            "patientId": self.patientId
+            "patientId": self.patientId,
         }
 
         return output_dict
