@@ -81,7 +81,7 @@ def get_roi_number(session, roi_type):
     return number_dict
 
 
-def resulting_containers(fw, container, level, get_files):
+def get_objects_for_processing(fw, container, level, get_files):
     """Returns flywheel child containers of files.
     
     Gets all containers at a certain level (or files of containers at a certain level) that are
