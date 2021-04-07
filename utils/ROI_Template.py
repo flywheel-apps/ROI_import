@@ -143,25 +143,33 @@ class Handle:
 
 
 class Cached_stats:
-    def __init__(self, handle):
+    def __init__(self, handle, kwargs):
+        
         x_limits = (handle.start.x, handle.end.x)
         y_limits = (handle.start.y, handle.end.y)
-
-        print(y_limits)
-
+        
         xmax = max(x_limits)
         ymax = max(y_limits)
 
         xmin = min(x_limits)
         ymin = min(y_limits)
-
-        self.area = (xmax - xmin) * (ymax - ymin)
-        self.count = (round(xmax) - round(xmin)) * (round(ymax) - round(ymin))
-        self.max = 0
-        self.min = 0
-        self.mean = 0
-        self.stdDev = 0
-        self.variance = 0
+        
+        
+        if "area" in kwargs:
+            self.area = kwargs["area"]
+        else:
+            self.area = (xmax - xmin) * (ymax - ymin)
+            
+        if "count" in kwargs:
+            self.count = kwargs["count"]
+        else:
+            self.count = (round(xmax) - round(xmin)) * (round(ymax) - round(ymin))
+        
+        self.max = kwargs.get('max', 0)
+        self.min = kwargs.get('min', 0)
+        self.mean = kwargs.get('mean', 0)
+        self.stdDev = kwargs.get('stdDev', 0)
+        self.variance = kwargs.get('variance', 0)
 
     def to_dict(self):
         output_dict = {
@@ -249,7 +257,7 @@ class ROI:
                 log.error(f"Mandatory key {mk} not present in kwargs {kwargs.keys()}")
                 raise Exception("Missing Mandatory Key")
 
-        self.handle = Handle(**kwargs.pop("Handle"))
+        self.handle = Handle(**kwargs.pop("Handle",{}))
         self.seriesInstanceUid = kwargs.pop("SeriesInstanceUID")
         self.sopInstanceUid = kwargs.pop("SOPInstanceUID")
         self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
@@ -277,8 +285,7 @@ class ROI:
         self.lesionNamingNumber = kwargs.pop("lesionNamingNumber")
         self.measurementNumber = kwargs.pop("measurementNumber")
         self.timepointId = kwargs.pop("timepointId")
-
-        self.cachedStats = Cached_stats(self.handle)
+        self.cachedStats = Cached_stats(self.handle, kwargs.pop('cachedStats', {}))
 
         self.kwargs = kwargs
 

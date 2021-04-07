@@ -8,6 +8,20 @@ log = logging.getLogger("__main__")
 MAPPING_COLUMN = "File"
 
 
+def get_stats_from_row(series):
+    
+    stats_dict = {
+        "area": panda_pop(series, "area", 0),
+        "count": panda_pop(series, "count", 0),
+        "max": panda_pop(series, "max", 0),
+        "mean": panda_pop(series, "mean", 0),
+        "min": panda_pop(series, "min", 0),
+        "stdDev": panda_pop(series, "stdDev", 0),
+        "variance": panda_pop(series, "variance", 0)
+    }
+    
+    return stats_dict
+
 def get_handle_from_row(series):
     """Generate the flywheel handle from the series.
     
@@ -54,15 +68,19 @@ def get_handle_from_row(series):
         "movesIndependently": panda_pop(series, "movesIndependently", False),
         "boundingBox": bounding_dict,
     }
+    
 
+    
     # This summarizes the final form of the dictionary.
     handle_dict = {
         "start": start_dict,
         "end": end_dict,
         "initialRotation": panda_pop(series, "initialRotation", 0),
-        "textBox": textbox_dict,
+        "textBox": textbox_dict
+        
     }
-
+    
+    
     if "Handle" in series:
         log.warning("Column name <Handle> is reserved.  Data will not be uploaded.")
         series.pop("Handle")
@@ -107,7 +125,8 @@ def get_roi_from_row(series, file, session):
 
     # Get the handle from the row.  The handle contains the x/y bounds of the ROI
     handle = get_handle_from_row(series)
-
+    stats = get_stats_from_row(series)
+    
     id_dict = fu.get_uids_from_filename(file)
 
     for k in id_dict.keys():
@@ -117,6 +136,7 @@ def get_roi_from_row(series, file, session):
     roi_dict.update(id_dict)
     roi_dict.update(series)
     roi_dict["patientId"] = file.info.get("PatientID")
+    roi_dict['cachedStats'] = stats
 
     roi_number_dict = fu.get_roi_number(session, roi_dict.get("ROI type"))
     roi_dict.update(roi_number_dict)
