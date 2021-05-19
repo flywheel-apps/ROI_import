@@ -126,7 +126,7 @@ def process_gear_inputs(context):
     if destination_level is None:
         log.error(f"invalid destination {destination_level}")
         raise Exception("Invalid gear destination")
-    
+
     output_dir = context.output_dir
 
     # TODO: Possibly not needed
