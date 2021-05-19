@@ -213,5 +213,5 @@ This file is a copy of the original CSV, with two additional columns:
 `<group>/<project>/<subject>/<session>/<acquisition>/<file>`
 
 
-
+TODO: Fix bug where Nans can get uploaded.  
 

@@ -42,12 +42,12 @@ def import_data(fw, df, dry_run=False):
     df["Gear_Status"] = "Failed"
     df["Gear_FW_Location"] = None
 
-    # If the "User_Origin" column is not present in the Dataframe, generate it using
+    # If the "User Origin" column is not present in the Dataframe, generate it using
     # the user ID of the person running this gear (or logged into the flywheel client)
-    if "User_Origin" not in df:
+    if "User Origin" not in df:
         user = fw.get_current_user()
         user_id = user.id
-        df["User_Origin"] = user_id
+        df["User Origin"] = user_id
 
     success_counter = 0
 
