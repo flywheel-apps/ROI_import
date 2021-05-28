@@ -42,20 +42,147 @@ log = logging.getLogger("ROI")
 #             'handles.end.x',
 #             'handles.end.y']
 
+# CONSTANTS FOR COLUMN HEADERS for user input only
+# There were some differences between these and the actual metadata keys that they would
+# become, but I have removed most of those.  Should I just combine anything that's
+# redundant (header value = keyword value?) or keep these separate?
+# I think yes...so it's clear what keywords are supported by the template and which
+# aren't
+
+# Suffix _HDR means this  comes from the input file
+ACTIVE_HDR="active"
+GROUP_HDR="group"
+PROJECT_HDR="project"
+SUBJECT_HDR="subject"
+SESSION_HDR="session"
+FILE_HDR="file"
+
+MAPPING_COLUMN = FILE_HDR
+
+FILETYPE_HDR="file type"
+LOCATION_HDR="location"
+DESCRIPTION_HDR="description"
+XMIN_HDR="x min"
+XMAX_HDR="x max"
+YMIN_HDR="y min"
+YMAX_HDR="y max",
+USERORIGIN_HDR="user origin"
+VISIBLE_HDR="visible"
+ROITYPE_HDR="roi type"
+HIGHLIGHT_HDR="highlight"
+HEIGHT_HDR="height"
+LEFT_HDR="left"
+RIGHT_HDR="right"
+TOP_HDR="top"
+WIDTH_HDR="width"
+
+
+ALLOWEDOUTSIDE_HDR="allowedOutsideImage"
+DRAWNINDEPENDENTLY_HDR = "drawnIndependently"
+HASBOUNDINGBOX_HDR = "hasBoundingBox"
+HASMOVED_HDR = "hasMoved"
+MOVESINDEPENDENTLY_HDR = "movesIndependently"
+INITIALROTATION_HDR = "initialRotation"
+
+AREA_HDR = "area"
+COUNT_HDR = "count"
+MAX_HDR = "max"
+MEAN_HDR = "mean"
+MIN_HDR = "min"
+STDDEV_HDR = "stdDev"
+VARIANCE_HDR = "variance"
+
+SERIESINSTANCEUID_HDR = "SeriesInstanceUID"
+SOPINSTANCEUID_HDR = "SOPInstanceUID"
+STUDYINSTANCEUID_HDR = "StudyInstanceUID"
+
+
+
+# suffix _KWD means These are KEYWORDS for the metadata.
+HIGHLIGHT_KWD="highlight"
+X_KWD="x"
+Y_KWD="y"
+HEIGHT_KWD="height"
+LEFT_KWD="left"
+RIGHT_KWD="right"
+TOP_KWD="top"
+WIDTH_KWD="width"
+ACTIVE_KWD="active"
+VISIBLE_KWD = VISIBLE_HDR
+ROITYPE_KWD = "toolType"
+DESCRIPTION_KWD = DESCRIPTION_HDR
+LOCATION_KWD = LOCATION_HDR
+USERORIGIN_KWD = USERORIGIN_HDR
+
+ALLOWEDOUTSIDE_KWD= "allowedOutsideImage"
+DRAWNINDEPENDENTLY_KWD = "drawnIndependently"
+HASBOUNDINGBOX_KWD = "hasBoundingBox"
+HASMOVED_KWD = "hasMoved"
+MOVESINDEPENDENTLY_KWD = "movesIndependently"
+BOUNDINGBOX_KWD = "boundingBox"
+
+START_KWD = "start"
+END_KWD = "end"
+TEXTBOX_KWD = "textBox"
+INITIALROTATION_KWD = "initialRotation"
+
+AREA_KWD = "area"
+COUNT_KWD = "count"
+MAX_KWD = "max"
+MEAN_KWD = "mean"
+MIN_KWD = "min"
+STDDEV_KWD = "stdDev"
+VARIANCE_KWD = "variance"
+
+HANDLE_KWD = "handle"
+SERIESINSTANCEUID_KWD = "seriesInstanceUID"
+SOPINSTANCEUID_KWD = "sopInstanceUID"
+STUDYINSTANCEUID_KWD = "studyInstanceUID"
+
+PATIENTID_KWD = "patientId"
+CASHEDSTATS_KWD = "cachedStats"
+TIMEPOINTID_KWD = "timepointId"
+FLYWHEELORIGIN_KWD = "flywheelOrigin"
+
+LESIONNAMINGNUMBER_KWD = "lesionNamingNumber"
+MEASUREMENTNUMBER_KWD = "measurementNumber"
+
+
+MEASUREMENTS_KWD = "measurements"
+
+NAMESPACE_KWD = "ohifViewer"
+
+IMAGEPATH_KWD = "imagePath"
+UUID_KWD = "uuid"
+ID_KWD = "_id"
+
+FORBIDDEN_KWD = [IMAGEPATH_KWD, UUID_KWD, ID_KWD]
+
+MANDATORY_KWD = [HANDLE_KWD,
+            SERIESINSTANCEUID_KWD,
+            SOPINSTANCEUID_KWD,
+            STUDYINSTANCEUID_KWD,
+            ROITYPE_KWD]
+
+
+
+
 
 class BoundingBox:
     def __init__(self, **kwargs):
-        self.height = kwargs.get("height", 45)
-        self.left = kwargs.get("left", 400)
-        self.top = kwargs.get("top", 150)
-        self.width = kwargs.get("width", 250)
+        # Initialize to a kind of "catch all" value (good for many use cases)
+        # Determined empirically
+        self.height = kwargs.get(HEIGHT_KWD, 45)
+        self.left = kwargs.get(LEFT_KWD, 400)
+        self.top = kwargs.get(TOP_KWD, 150)
+        self.width = kwargs.get(WIDTH_KWD, 250)
 
     def to_dict(self):
         output_dict = {
-            "height": self.height,
-            "left": self.left,
-            "top": self.top,
-            "width": self.width,
+            HEIGHT_KWD: self.height,
+            LEFT_KWD: self.left,
+            TOP_KWD: self.top,
+            WIDTH_KWD: self.width,
         }
 
         return output_dict
@@ -70,36 +197,36 @@ class Coords:
 
     def to_dict(self):
         output_dict = {
-            "x": self.x,
-            "y": self.y,
-            "active": self.active,
-            "highlight": self.highlight,
+            X_KWD: self.x,
+            Y_KWD: self.y,
+            ACTIVE_KWD: self.active,
+            HIGHLIGHT_KWD: self.highlight,
         }
 
         if self.highlight is None:
-            trash = output_dict.pop("highlight")
+            trash = output_dict.pop(HIGHLIGHT_KWD)
 
         return output_dict
 
 
 class TextBox:
     def __init__(self, **kwargs):
-        self.coords = Coords(kwargs.get("x"), kwargs.get("y"), kwargs.get("active"))
-        self.allowedOutsideImage = kwargs.get("allowedOutsideImage", True)
-        self.drawnIndependently = kwargs.get("drawnIndependently", True)
-        self.hasBoundingBox = kwargs.get("hasBoundingBox", True)
-        self.hasMoved = kwargs.get("hasMoved", False)
-        self.movesIndependently = kwargs.get("movesIndependently", False)
-        self.boundingBox = BoundingBox(**kwargs.get("boundingBox", {}))
+        self.coords = Coords(kwargs.get(X_KWD), kwargs.get(Y_KWD), kwargs.get(ACTIVE_KWD))
+        self.allowedOutsideImage = kwargs.get(ALLOWEDOUTSIDE_KWD, True)
+        self.drawnIndependently = kwargs.get(DRAWNINDEPENDENTLY_KWD, True)
+        self.hasBoundingBox = kwargs.get(HASBOUNDINGBOX_KWD, True)
+        self.hasMoved = kwargs.get(HASMOVED_KWD, False)
+        self.movesIndependently = kwargs.get(MOVESINDEPENDENTLY_KWD, False)
+        self.boundingBox = BoundingBox(**kwargs.get(BOUNDINGBOX_KWD, {}))
 
     def to_dict(self):
         output_dict = {
-            "allowedOutsideImage": self.allowedOutsideImage,
-            "drawnIndependently": self.drawnIndependently,
-            "hasBoundingBox": self.hasBoundingBox,
-            "hasMoved": self.hasMoved,
-            "movesIndependently": self.movesIndependently,
-            "boundingBox": self.boundingBox.to_dict(),
+            ALLOWEDOUTSIDE_KWD: self.allowedOutsideImage,
+            DRAWNINDEPENDENTLY_KWD: self.drawnIndependently,
+            HASBOUNDINGBOX_KWD: self.hasBoundingBox,
+            HASMOVED_KWD: self.hasMoved,
+            MOVESINDEPENDENTLY_KWD: self.movesIndependently,
+            BOUNDINGBOX_KWD: self.boundingBox.to_dict(),
         }
         output_dict.update(self.coords.to_dict())
 
@@ -108,36 +235,36 @@ class TextBox:
 
 class Handle:
     def __init__(self, **kwargs):
-        self.handle_args = ["start", "end", "textBox", "initialRotation"]
+        self.handle_args = [START_KWD, END_KWD, TEXTBOX_KWD, INITIALROTATION_KWD]
 
-        if "start" not in kwargs or "end" not in kwargs:
-            log.error('ROI requires both "start" and "end"')
+        if START_KWD not in kwargs or END_KWD not in kwargs:
+            log.error(f"ROI requires both '{START_KWD}' and '{END_KWD}'")
             pass
 
-        start = kwargs.get("start", {})
-        self.start = Coords(start.get("x"), start.get("y"), start.get("active", True))
-        self.start.highlight = start.get("highlight", True)
+        start = kwargs.get(START_KWD, {})
+        self.start = Coords(start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, True))
+        self.start.highlight = start.get(HIGHLIGHT_KWD, True)
 
-        end = kwargs.get("end", {})
-        self.end = Coords(end.get("x"), end.get("y"), end.get("active", False))
-        self.end.highlight = end.get("highlight", True)
+        end = kwargs.get(END_KWD, {})
+        self.end = Coords(end.get(X_KWD), end.get(Y_KWD), end.get(ACTIVE_KWD, False))
+        self.end.highlight = end.get(HIGHLIGHT_KWD, True)
 
-        text = kwargs.get("textBox", {})
-        if "x" not in text:
-            text["x"] = start.get("x")
-        if "y" not in text:
-            text["y"] = start.get("y") - (start.get("y") - end.get("y")) / 2.0
+        text = kwargs.get(TEXTBOX_KWD, {})
+        if X_KWD not in text:
+            text[X_KWD] = start.get(X_KWD)
+        if Y_KWD not in text:
+            text[Y_KWD] = start.get(Y_KWD) - (start.get(Y_KWD) - end.get(Y_KWD)) / 2.0
         self.textBox = TextBox(**text)
 
-        self.initialRotation = kwargs.get("initialRotation", 0)
+        self.initialRotation = kwargs.get(INITIALROTATION_KWD, 0)
 
     def to_dict(self):
 
         output_dict = {
-            "start": self.start.to_dict(),
-            "end": self.end.to_dict(),
-            "textBox": self.textBox.to_dict(),
-            "initialRotation": self.initialRotation,
+            START_KWD: self.start.to_dict(),
+            END_KWD: self.end.to_dict(),
+            TEXTBOX_KWD: self.textBox.to_dict(),
+            INITIALROTATION_KWD: self.initialRotation,
         }
         return output_dict
 
@@ -154,31 +281,31 @@ class Cached_stats:
         xmin = min(x_limits)
         ymin = min(y_limits)
 
-        if "area" in kwargs:
-            self.area = kwargs["area"]
+        if AREA_KWD in kwargs:
+            self.area = kwargs[AREA_KWD]
         else:
             self.area = (xmax - xmin) * (ymax - ymin)
 
-        if "count" in kwargs:
-            self.count = kwargs["count"]
+        if COUNT_KWD in kwargs:
+            self.count = kwargs[COUNT_KWD]
         else:
             self.count = (round(xmax) - round(xmin)) * (round(ymax) - round(ymin))
 
-        self.max = kwargs.get("max", 0)
-        self.min = kwargs.get("min", 0)
-        self.mean = kwargs.get("mean", 0)
-        self.stdDev = kwargs.get("stdDev", 0)
-        self.variance = kwargs.get("variance", 0)
+        self.max = kwargs.get(MAX_KWD, 0)
+        self.min = kwargs.get(MIN_KWD, 0)
+        self.mean = kwargs.get(MEAN_KWD, 0)
+        self.stdDev = kwargs.get(STDDEV_KWD, 0)
+        self.variance = kwargs.get(VARIANCE_KWD, 0)
 
     def to_dict(self):
         output_dict = {
-            "area": self.area,
-            "count": self.count,
-            "max": self.max,
-            "mean": self.mean,
-            "min": self.min,
-            "stdDev": self.stdDev,
-            "variance": self.variance,
+            AREA_KWD: self.area,
+            COUNT_KWD: self.count,
+            MAX_KWD: self.max,
+            MEAN_KWD: self.mean,
+            MIN_KWD: self.min,
+            STDDEV_KWD: self.stdDev,
+            VARIANCE_KWD: self.variance,
         }
         return output_dict
 
@@ -194,16 +321,10 @@ class ROI:
 
         log.info("Initializing ROI")
 
-        self.mandatory_keys = [
-            "Handle",
-            "SeriesInstanceUID",
-            "SOPInstanceUID",
-            "StudyInstanceUID",
-            "ROI type",
-        ]
+        self.mandatory_keys = MANDATORY_KWD
 
-        self.forbidden_keys = ["imagePath", "uuid", "_id"]
-        self.namespace = "ohifViewer"
+        self.forbidden_keys = FORBIDDEN_KWD
+        self.namespace = NAMESPACE_KWD
 
         self.handle = None
         self.seriesInstanceUid = None
@@ -256,56 +377,56 @@ class ROI:
                 log.error(f"Mandatory key {mk} not present in kwargs {kwargs.keys()}")
                 raise Exception("Missing Mandatory Key")
 
-        self.handle = Handle(**kwargs.pop("Handle", {}))
-        self.seriesInstanceUid = kwargs.pop("SeriesInstanceUID")
-        self.sopInstanceUid = kwargs.pop("SOPInstanceUID")
-        self.studyInstanceUid = kwargs.pop("StudyInstanceUID")
-        self.patientId = kwargs.pop("patientId")
+        self.handle = Handle(**kwargs.pop(HANDLE_KWD, {}))
+        self.seriesInstanceUid = kwargs.pop(SERIESINSTANCEUID_KWD)
+        self.sopInstanceUid = kwargs.pop(SOPINSTANCEUID_KWD)
+        self.studyInstanceUid = kwargs.pop(STUDYINSTANCEUID_KWD)
+        self.patientId = kwargs.pop(PATIENTID_KWD)
 
-        self.toolType = kwargs.pop("ROI type")
+        self.toolType = kwargs.pop(ROITYPE_KWD)
 
         self.imagePath = self.generate_imagePath()
 
         # Some important values we'll call out specifically for consistency
-        self.visible = kwargs.pop("visible", True)
-        self.active = kwargs.pop("active", True)
-        self.description = kwargs.pop("description", None)
-        self.location = kwargs.pop("location", None)
+        self.visible = kwargs.pop(VISIBLE_KWD, True)
+        self.active = kwargs.pop(ACTIVE_KWD, True)
+        self.description = kwargs.pop(DESCRIPTION_KWD, None)
+        self.location = kwargs.pop(LOCATION_KWD, None)
 
         fw_origin = dict()
-        if "User Origin" in kwargs:
+        if USERORIGIN_KWD in kwargs:
             fw_origin["type"] = "user"
-            fw_origin["id"] = kwargs.pop("User Origin")
+            fw_origin["id"] = kwargs.pop(USERORIGIN_KWD)
         else:
             fw_origin["type"] = "gear"
             fw_origin["id"] = "CSV to ROI Gear"
 
         self.flywheelOrigin = fw_origin
-        self.lesionNamingNumber = kwargs.pop("lesionNamingNumber")
-        self.measurementNumber = kwargs.pop("measurementNumber")
-        self.timepointId = kwargs.pop("timepointId")
-        self.cachedStats = Cached_stats(self.handle, kwargs.pop("cachedStats", {}))
+        self.lesionNamingNumber = kwargs.pop(LESIONNAMINGNUMBER_KWD)
+        self.measurementNumber = kwargs.pop(MEASUREMENTNUMBER_KWD)
+        self.timepointId = kwargs.pop(TIMEPOINTID_KWD)
+        self.cachedStats = Cached_stats(self.handle, kwargs.pop(CASHEDSTATS_KWD, {}))
 
         self.kwargs = kwargs
 
     def to_dict(self):
 
         output_dict = {
-            "handles": self.handle.to_dict(),
-            "cachedStats": self.cachedStats.to_dict(),
-            "flywheelOrigin": self.flywheelOrigin,
-            "seriesInstanceUid": self.seriesInstanceUid,
-            "studyInstanceUid": self.studyInstanceUid,
-            "sopInstanceUid": self.sopInstanceUid,
-            "imagePath": self.imagePath,
-            "visible": self.visible,
-            "description": self.description,
-            "location": self.location,
-            "toolType": self.toolType,
-            "lesionNamingNumber": self.lesionNamingNumber,
-            "measurementNumber": self.measurementNumber,
-            "timepointId": self.timepointId,
-            "patientId": self.patientId,
+            HANDLE_KWD: self.handle.to_dict(),
+            CASHEDSTATS_KWD: self.cachedStats.to_dict(),
+            FLYWHEELORIGIN_KWD: self.flywheelOrigin,
+            SERIESINSTANCEUID_KWD: self.seriesInstanceUid,
+            SOPINSTANCEUID_KWD: self.studyInstanceUid,
+            STUDYINSTANCEUID_KWD: self.sopInstanceUid,
+            IMAGEPATH_KWD: self.imagePath,
+            VISIBLE_KWD: self.visible,
+            DESCRIPTION_KWD: self.description,
+            LOCATION_KWD: self.location,
+            ROITYPE_KWD: self.toolType,
+            LESIONNAMINGNUMBER_KWD: self.lesionNamingNumber,
+            MEASUREMENTNUMBER_KWD: self.measurementNumber,
+            TIMEPOINTID_KWD: self.timepointId,
+            PATIENTID_KWD: self.patientId,
         }
 
         return output_dict
@@ -319,18 +440,18 @@ class ROI:
 
         if self.namespace not in info:
             info[self.namespace] = {}
-        if "measurements" not in info[self.namespace]:
-            info[self.namespace]["measurements"] = {}
-        if self.toolType not in info[self.namespace]["measurements"]:
-            info[self.namespace]["measurements"][self.toolType] = []
+        if MEASUREMENTS_KWD not in info[self.namespace]:
+            info[self.namespace][MEASUREMENTS_KWD] = {}
+        if self.toolType not in info[self.namespace][MEASUREMENTS_KWD]:
+            info[self.namespace][MEASUREMENTS_KWD][self.toolType] = []
 
-        if not isinstance(info[self.namespace]["measurements"][self.toolType], list):
-            log.info("namespace (ROI type) is not list.  Resetting")
-            info[self.namespace]["measurements"][self.toolType] = [clean_dict]
+        if not isinstance(info[self.namespace][MEASUREMENTS_KWD][self.toolType], list):
+            log.info(f"namespace {self.toolType} is not list.  Resetting")
+            info[self.namespace][MEASUREMENTS_KWD][self.toolType] = [clean_dict]
         else:
 
-            log.info("Appending to namespace (ROI type)")
-            info[self.namespace]["measurements"][self.toolType].append(clean_dict)
+            log.info(f"Appending to namespace {self.toolType}")
+            info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
 
         log.info("updating container...")
 

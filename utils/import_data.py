@@ -8,6 +8,7 @@ import logging
 from utils import flywheel_helpers as fh
 import utils.fwobject_utils as fu
 import utils.csv_utils as cu
+import utils.ROI_Template as ROI
 
 # df_path = '/Users/davidparker/Documents/Flywheel/SSE/MyWork/Gears/Metadata_import_Errorprone/Data_Entry_2017_test.csv'
 # firstrow_spec = 1
@@ -44,10 +45,10 @@ def import_data(fw, df, dry_run=False):
 
     # If the "User Origin" column is not present in the Dataframe, generate it using
     # the user ID of the person running this gear (or logged into the flywheel client)
-    if "User Origin" not in df:
+    if ROI.USERORIGIN_HDR not in df:
         user = fw.get_current_user()
         user_id = user.id
-        df["User Origin"] = user_id
+        df[ROI.USERORIGIN_HDR] = user_id
 
     success_counter = 0
 

@@ -5,19 +5,19 @@ from utils.ROI_Template import ROI
 import utils.fwobject_utils as fu
 
 log = logging.getLogger("__main__")
-MAPPING_COLUMN = "File"
+MAPPING_COLUMN = ROI.MAPPING_COLUMN
 
 
 def get_stats_from_row(series):
 
     stats_dict = {
-        "area": panda_pop(series, "area", 0),
-        "count": panda_pop(series, "count", 0),
-        "max": panda_pop(series, "max", 0),
-        "mean": panda_pop(series, "mean", 0),
-        "min": panda_pop(series, "min", 0),
-        "stdDev": panda_pop(series, "stdDev", 0),
-        "variance": panda_pop(series, "variance", 0),
+        ROI.AREA_KWD: panda_pop(series, ROI.AREA_HDR, 0),
+        ROI.COUNT_KWD: panda_pop(series, ROI.COUNT_HDR, 0),
+        ROI.MAX_KWD: panda_pop(series, ROI.MAX_HDR, 0),
+        ROI.MEAN_KWD: panda_pop(series, ROI.MEAN_HDR, 0),
+        ROI.MIN_KWD: panda_pop(series, ROI.MIN_HDR, 0),
+        ROI.STDDEV_KWD: panda_pop(series, ROI.STDDEV_HDR, 0),
+        ROI.VARIANCE_KWD: panda_pop(series, ROI.VARIANCE_HDR, 0)
     }
 
     return stats_dict
@@ -41,46 +41,46 @@ def get_handle_from_row(series):
 
     """
     start_dict = {
-        "x": panda_pop(series, "X min"),
-        "y": panda_pop(series, "Y min"),
-        "active": panda_pop(series, "active", True),
-        "highlight": panda_pop(series, "highlight", False),
+        ROI.X_KWD: panda_pop(series, ROI.XMIN_HDR),
+        ROI.Y_KWD: panda_pop(series, ROI.YMIN_HDR),
+        ROI.ACVITE_KWD: panda_pop(series, ROI.ACTIVE_HDR, True),
+        ROI.HIGHLIGHT_KWD: panda_pop(series, ROI.HIGHLIGHT_HDR, False),
     }
 
     end_dict = {
-        "x": panda_pop(series, "X max"),
-        "y": panda_pop(series, "Y max"),
-        "active": panda_pop(series, "active", True),
-        "highlight": panda_pop(series, "highlight", False),
+        ROI.X_KWD: panda_pop(series, ROI.XMAX_HDR),
+        ROI.Y_KWD: panda_pop(series, ROI.YMAX_HDR),
+        ROI.ACTIVE_KWD: panda_pop(series, ROI.ACTIVE_HDR, True),
+        ROI.HIGHLIGHT_KWD: panda_pop(series, ROI.HIGHLIGHT_HDR, False),
     }
 
     bounding_dict = {
-        "height": panda_pop(series, "height", 45),
-        "left": panda_pop(series, "left", 400),
-        "top": panda_pop(series, "top", 150),
-        "width": panda_pop(series, "width", 250),
+        ROI.HEIGHT_KWD: panda_pop(series, ROI.HEIGHT_HDR, 45),
+        ROI.LEFT_KWD: panda_pop(series, ROI.LEFT_HDR, 400),
+        ROI.TOP_KWD: panda_pop(series, ROI.TOP_HDR, 150),
+        ROI.WIDTH_KWD: panda_pop(series, ROI.WIDTH_HDR, 250),
     }
 
     textbox_dict = {
-        "allowedOutsideImage": panda_pop(series, "allowedOutsideImage", True),
-        "drawnIndependently": panda_pop(series, "drawnIndependently", True),
-        "hasBoundingBox": panda_pop(series, "hasBoundingBox", True),
-        "hasMoved": panda_pop(series, "hasMoved", False),
-        "movesIndependently": panda_pop(series, "movesIndependently", False),
-        "boundingBox": bounding_dict,
+        ROI.ALLOWEDOUTSIDE_KWD: panda_pop(series, ROI.ALLOWEDOUTSIDE_HDR, True),
+        ROI.DRAWNINDEPENDENTLY_KWD: panda_pop(series, ROI.DRAWNINDEPENDENTLY_HDR, True),
+        ROI.HASBOUNDINGBOX_KWD: panda_pop(series, ROI.HASBOUNDINGBOX_HDR, True),
+        ROI.HASMOVED_KWD: panda_pop(series, ROI.HASMOVED_HDR, False),
+        ROI.MOVESINDEPENDENTLY_KWD: panda_pop(series, ROI.MOVESINDEPENDENTLY_HDR, False),
+        ROI.BOUNDINGBOX_KWD: bounding_dict,
     }
 
     # This summarizes the final form of the dictionary.
     handle_dict = {
-        "start": start_dict,
-        "end": end_dict,
-        "initialRotation": panda_pop(series, "initialRotation", 0),
-        "textBox": textbox_dict,
+        ROI.START_KWD: start_dict,
+        ROI.END_KWD: end_dict,
+        ROI.INITIALROTATION_KWD: panda_pop(series, ROI.INITIALROTATION_HDR, 0),
+        ROI.TEXTBOX_KWD: textbox_dict,
     }
 
-    if "Handle" in series:
-        log.warning("Column name <Handle> is reserved.  Data will not be uploaded.")
-        series.pop("Handle")
+    if ROI.HANDLE_KWD in series:
+        log.warning(f"Column name{ROI.HANDLE_KWD} is reserved.  Data will not be uploaded.")
+        series.pop(ROI.HANDLE_KWD)
 
     return handle_dict
 
@@ -129,15 +129,19 @@ def get_roi_from_row(series, file, session):
     for k in id_dict.keys():
         panda_pop(series, k)
 
-    roi_dict = {"Handle": handle}
+    roi_dict = {ROI.HANDLE_KWD: handle}
     roi_dict.update(id_dict)
+    roi_dict[ROI.ROITYPE_KWD] = panda_pop(series, ROI.ROITYPE_HDR)
+    
+    # This adds all remaining keys to the roi dict.
     roi_dict.update(series)
-    roi_dict["patientId"] = file.info.get("PatientID")
-    roi_dict["cachedStats"] = stats
+    
+    roi_dict[ROI.PATIENTID_KWD] = file.info.get("PatientID")
+    roi_dict[ROI.CACHEDSTATS_KWD] = stats
 
-    roi_number_dict = fu.get_roi_number(session, roi_dict.get("ROI type"))
+    roi_number_dict = fu.get_roi_number(session, roi_dict.get(ROI.ROITYPE_HDR))
     roi_dict.update(roi_number_dict)
-    roi_dict["timepointId"] = "TimepointId"
+    roi_dict[ROI.TIMEPOINTID_KWD] = "TimepointId"
 
     roi = ROI()
     roi.roi_from_dict(**roi_dict)
@@ -175,8 +179,8 @@ def get_fw_path(series):
     """
 
     object_name = series.get(MAPPING_COLUMN)
-    group_name = series.get("Group")
-    project_name = series.get("Project")
-    subject_label = series.get("Subject")
-    session_label = series.get("Session")
+    group_name = series.get(ROI.GROUP_HDR)
+    project_name = series.get(ROI.PROJECT_HDR)
+    subject_label = series.get(ROI.SUBJECT_HDR)
+    session_label = series.get(ROI.SESSION_HDR)
     return object_name, group_name, project_name, subject_label, session_label

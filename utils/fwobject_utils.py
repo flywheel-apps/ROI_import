@@ -4,6 +4,7 @@ import numpy as np
 import logging
 
 from utils import flywheel_helpers as fh
+from utils import ROI_Template as ROI
 
 log = logging.getLogger("__main__")
 
@@ -21,15 +22,14 @@ def get_uids_from_filename(file):
 
     """
     id_dict = {
-        "SeriesInstanceUID": None,
-        "SOPInstanceUID": None,
-        "StudyInstanceUID": None,
+        ROI.SERIESINSTANCEUID_KWD: file.info.get(ROI.SERIESINSTANCEUID_HDR),
+        ROI.SOPINSTANCEUID_KWD: file.info.get(ROI.SOPINSTANCEUID_HDR),
+        ROI.STUDYINSTANCEUID_KWD: file.info.get(ROI.STUDYINSTANCEUID_HDR),
     }
 
-    for id in id_dict.keys():
-        value = file.info.get(id)
-        id_dict[id] = value
+    for id, value in id_dict.keys():
         log.info(f"Found {value} for {id}")
+        
     return id_dict
 
 
@@ -49,13 +49,13 @@ def get_roi_number(session, roi_type):
 
     # If the session has the metadata object "ohifViewer.measurements.<roi_type>":
     if (
-        "ohifViewer" in sinfo
-        and "measurements" in sinfo["ohifViewer"]
-        and roi_type in sinfo["ohifViewer"]["measurements"]
+        ROI.NAMESPACE_KWD in sinfo
+        and ROI.MEASUREMENTS_KWD in sinfo[ROI.NAMESPACE_KWD]
+        and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
     ):
 
         # See how many ROI's there are already present of this type
-        rois = sinfo["ohifViewer"]["measurements"][roi_type]
+        rois = sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roi_type]
         if len(rois) == 0:
             # If it's zero, we start at one.
             new_num = 1
@@ -63,8 +63,8 @@ def get_roi_number(session, roi_type):
         else:
             # sometimes things can get wonky so we just look at the maximum of the two possible
             # items that are used to assign ROI numbers
-            lesion_nums = [r.get("lesionNamingNumber", -1) for r in rois]
-            meausrement_nums = [r.get("measurementNumber", -1) for r in rois]
+            lesion_nums = [r.get(ROI.LESIONNAMINGNUMBER_KWD, -1) for r in rois]
+            meausrement_nums = [r.get(ROI.MEASUREMENTNUMBER_KWD, -1) for r in rois]
 
             mlesion = max(lesion_nums)
             mnum = max(meausrement_nums)
@@ -76,7 +76,7 @@ def get_roi_number(session, roi_type):
     else:
         new_num = 1
 
-    number_dict = {"lesionNamingNumber": new_num, "measurementNumber": new_num}
+    number_dict = {ROI.LESIONNAMINGNUMBER_KWD: new_num, ROI.MEASUREMENTNUMBER_KWD: new_num}
 
     return number_dict
 
