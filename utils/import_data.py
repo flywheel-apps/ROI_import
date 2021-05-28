@@ -106,7 +106,18 @@ def import_data(fw, df, dry_run=False):
             matches = [
                 m for m in objects_for_processing if m.get("name") == object_name
             ]
-
+            
+            log.debug(f"No matches found for {object_name}, appending File type '.{series.get('File Type')}'")
+            
+            if len(matches) == 0:
+                object_name += f".{series.get('File Type')}"
+            
+            log.debug(f"looking for {object_name}")
+            
+            matches = [
+                m for m in objects_for_processing if m.get("name") == object_name
+            ]
+            
             # Names must be unique, so warn if there are multiple matches.
             if len(matches) > 1:
                 log.warning(

@@ -1,68 +1,45 @@
 {
-  "name": "import-roi",
-  "label": "Import ROIs",
-  "description": "A gear for importing metadata from a CSV file into flywheel objects",
-  "author": "Flywheel SSE",
-  "maintainer": "Flywheel <support@flywheel.io>",
-  "license": "MIT",
-  "source": "https://github.com/flywheel-apps/ROI_import",
-  "url": "https://github.com/flywheel-apps/ROI_import",
-  "version": "1.0.6",
-  "custom": {
-    "gear-builder": {
-      "category": "analysis",
-      "image": "flywheel/import_roi:1.0.6"   
+    "name": "import-roi",
+    "label": "Import ROIs",
+    "description": "A gear for importing metadata from a CSV file into flywheel objects",
+    "author": "Flywheel SSE",
+    "maintainer": "Flywheel <support@flywheel.io>",
+    "license": "MIT",
+    "source": "https://github.com/flywheel-apps/ROI_import",
+    "url": "https://github.com/flywheel-apps/ROI_import",
+    "version": "1.0.9",
+    "custom": {
+        "gear-builder": {"category": "analysis", "image": "flywheel/import_roi:1.0.9"},
+        "flywheel": {"suite": "Metadata I/O"}
     },
-    "flywheel": {
-      "suite": "Metadata I/O"
-    }
-  },
-  
-  "inputs": {
-    "csv_file": {
-      "base": "file",
-      "optional": false
-    },    
-    "key": {
-      "base": "api-key"
-    }
-  },
-  
-  "config": {
-    "first_row": {
-      "default": 1,
-      "description": "The first row that contains data (usually the column headers)",
-      "type": "integer"
+    "inputs": {
+        "csv_file": {"base": "file", "optional": false},
+        "key": {"base": "api-key"}
     },
-    "delimiter": {
-      "description": "delimiter",
-      "type": "string",
-      "enum": [
-                "/t",
-                ",",
-                "/s"
-            ],
-       "default": ","
-      
+    "config": {
+        "first_row": {
+            "default": 1,
+            "description": "The first row that contains data (usually the column headers)",
+            "type": "integer"
+        },
+        "delimiter": {
+            "description": "delimiter",
+            "type": "string",
+            "enum": ["/t", ",", "/s"],
+            "default": ","
+        },
+        "gear_log_level": {
+            "description": "The level at which the gear will log.",
+            "type": "string",
+            "enum": ["INFO", "DEBUG"],
+            "default": "INFO"
+        },
+        "dry_run": {
+            "description": "Only log what changes would be made, do not update anything.",
+            "type": "boolean",
+            "default": false
+        }
     },
-    "gear_log_level": {
-      "description": "The level at which the gear will log.",
-      "type": "string",
-      "enum": [
-        "INFO",
-        "DEBUG"
-      ],
-      "default": "INFO"
-    },
-    
-    "dry_run": {
-      "description": "Only log what changes would be made, do not update anything.",
-      "type": "boolean",
-      "default": false
-    }
-  },
-  "environment": {
-
-  },
-  "command": "python3.7 /flywheel/v0/run.py"
+    "environment": {},
+    "command": "python3.7 /flywheel/v0/run.py"
 }
