@@ -6,7 +6,7 @@ import logging
 from utils import flywheel_helpers as fh
 from utils import ROI_Template as ROI
 
-log = logging.getLogger("__main__")
+log = logging.getLogger(__name__)
 
 
 def get_uids_from_filename(file):
@@ -27,7 +27,7 @@ def get_uids_from_filename(file):
         ROI.STUDYINSTANCEUID_KWD: file.info.get(ROI.STUDYINSTANCEUID_HDR),
     }
 
-    for id, value in id_dict.keys():
+    for id, value in id_dict.items():
         log.info(f"Found {value} for {id}")
         
     return id_dict

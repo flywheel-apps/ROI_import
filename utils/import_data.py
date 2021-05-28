@@ -80,6 +80,7 @@ def import_data(fw, df, dry_run=False):
 
                 # use flywheel lookup to see if the instance can find the path
                 ses = fw.lookup(lookup_string)
+                ses=ses.reload()
             except ApiException:
                 log.error(
                     f"No session found for: {lookup_string}\n please double check.  Skipping "
@@ -108,9 +109,11 @@ def import_data(fw, df, dry_run=False):
                 m for m in objects_for_processing if m.get("name") == object_name
             ]
             
-            log.debug(f"No matches found for {object_name}, appending File type '.{series.get('File Type')}'")
+            
             
             if len(matches) == 0:
+                log.debug(
+                    f"No matches found for {object_name}, appending File type '.{series.get('file type')}'")
                 object_name += f".{series.get('File Type')}"
             
             log.debug(f"looking for {object_name}")

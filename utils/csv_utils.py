@@ -1,7 +1,7 @@
 import logging
 
 from utils import flywheel_helpers as fh
-from utils.ROI_Template import ROI
+import utils.ROI_Template as ROI
 import utils.fwobject_utils as fu
 
 log = logging.getLogger("__main__")
@@ -43,7 +43,7 @@ def get_handle_from_row(series):
     start_dict = {
         ROI.X_KWD: panda_pop(series, ROI.XMIN_HDR),
         ROI.Y_KWD: panda_pop(series, ROI.YMIN_HDR),
-        ROI.ACVITE_KWD: panda_pop(series, ROI.ACTIVE_HDR, True),
+        ROI.ACTIVE_HDR: panda_pop(series, ROI.ACTIVE_HDR, True),
         ROI.HIGHLIGHT_KWD: panda_pop(series, ROI.HIGHLIGHT_HDR, False),
     }
 
@@ -77,7 +77,9 @@ def get_handle_from_row(series):
         ROI.INITIALROTATION_KWD: panda_pop(series, ROI.INITIALROTATION_HDR, 0),
         ROI.TEXTBOX_KWD: textbox_dict,
     }
-
+    
+    log.debug('handle:')
+    log.debug(handle_dict)
     if ROI.HANDLE_KWD in series:
         log.warning(f"Column name{ROI.HANDLE_KWD} is reserved.  Data will not be uploaded.")
         series.pop(ROI.HANDLE_KWD)
@@ -143,7 +145,7 @@ def get_roi_from_row(series, file, session):
     roi_dict.update(roi_number_dict)
     roi_dict[ROI.TIMEPOINTID_KWD] = "TimepointId"
 
-    roi = ROI()
+    roi = ROI.ROI()
     roi.roi_from_dict(**roi_dict)
 
     return roi

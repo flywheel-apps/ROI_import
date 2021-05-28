@@ -65,7 +65,7 @@ DESCRIPTION_HDR="description"
 XMIN_HDR="x min"
 XMAX_HDR="x max"
 YMIN_HDR="y min"
-YMAX_HDR="y max",
+YMAX_HDR="y max"
 USERORIGIN_HDR="user origin"
 VISIBLE_HDR="visible"
 ROITYPE_HDR="roi type"
@@ -140,7 +140,7 @@ SOPINSTANCEUID_KWD = "sopInstanceUID"
 STUDYINSTANCEUID_KWD = "studyInstanceUID"
 
 PATIENTID_KWD = "patientId"
-CASHEDSTATS_KWD = "cachedStats"
+CACHEDSTATS_KWD = "cachedStats"
 TIMEPOINTID_KWD = "timepointId"
 FLYWHEELORIGIN_KWD = "flywheelOrigin"
 
@@ -240,12 +240,18 @@ class Handle:
         if START_KWD not in kwargs or END_KWD not in kwargs:
             log.error(f"ROI requires both '{START_KWD}' and '{END_KWD}'")
             pass
+        
 
+        
         start = kwargs.get(START_KWD, {})
+        log.debug("start:")
+        log.debug(start)
         self.start = Coords(start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, True))
         self.start.highlight = start.get(HIGHLIGHT_KWD, True)
 
         end = kwargs.get(END_KWD, {})
+        log.debug("end:")
+        log.debug(end)
         self.end = Coords(end.get(X_KWD), end.get(Y_KWD), end.get(ACTIVE_KWD, False))
         self.end.highlight = end.get(HIGHLIGHT_KWD, True)
 
@@ -405,7 +411,7 @@ class ROI:
         self.lesionNamingNumber = kwargs.pop(LESIONNAMINGNUMBER_KWD)
         self.measurementNumber = kwargs.pop(MEASUREMENTNUMBER_KWD)
         self.timepointId = kwargs.pop(TIMEPOINTID_KWD)
-        self.cachedStats = Cached_stats(self.handle, kwargs.pop(CASHEDSTATS_KWD, {}))
+        self.cachedStats = Cached_stats(self.handle, kwargs.pop(CACHEDSTATS_KWD, {}))
 
         self.kwargs = kwargs
 
@@ -413,7 +419,7 @@ class ROI:
 
         output_dict = {
             HANDLE_KWD: self.handle.to_dict(),
-            CASHEDSTATS_KWD: self.cachedStats.to_dict(),
+            CACHEDSTATS_KWD: self.cachedStats.to_dict(),
             FLYWHEELORIGIN_KWD: self.flywheelOrigin,
             SERIESINSTANCEUID_KWD: self.seriesInstanceUid,
             SOPINSTANCEUID_KWD: self.studyInstanceUid,
