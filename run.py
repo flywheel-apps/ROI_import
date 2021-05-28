@@ -1,12 +1,14 @@
 from pathlib import Path
 import pathvalidate as pv
 import sys
+import logging
 
 import flywheel
 import flywheel_gear_toolkit as gt
 
 from utils import load_data as ld, import_data as id, csv_utils as cu
 
+log = logging.getLogger()
 
 def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
     """Imports ROI's from a CSV file into Flywheel
@@ -87,7 +89,7 @@ def process_gear_inputs(context):
     else:
         context.init_logging("debug")
     context.log_config()
-    log = context.log
+    
 
     # Get the path of the CSV file provided by the user
     csv_file = context.get_input_path("csv_file")

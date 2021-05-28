@@ -1,6 +1,6 @@
 numpy
 pandas
 rtstatlib
-flywheel - sdk
+flywheel-sdk
 pathvalidate
 flywheel_gear_toolkit
