@@ -51,6 +51,8 @@ def get_roi_number(session):
     # If the session has the metadata object "ohifViewer.measurements.<roi_type>":
     # Updated to count ALL roi's to determine ROI number -
     # as of 06/01/2021 this is how I think it works ( as far as I can tell)
+    lesion_count = []
+    roi_count = []
 
     if (
         ROI.NAMESPACE_KWD in sinfo
@@ -63,15 +65,15 @@ def get_roi_number(session):
         roi_count = [rc.get(ROI.MEASUREMENTNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
         lesion_count = [rc.get(ROI.LESIONNAMINGNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
 
-        if len(roi_count) == 0:
-            roi_count = 1
-        else:
-            roi_count = max(roi_count) + 1
+    if len(roi_count) == 0:
+        roi_count = 1
+    else:
+        roi_count = max(roi_count) + 1
 
-        if len(lesion_count) == 0:
-            lesion_count = 1
-        else:
-            lesion_count = max(lesion_count) + 1
+    if len(lesion_count) == 0:
+        lesion_count = 1
+    else:
+        lesion_count = max(lesion_count) + 1
 
     number_dict = {ROI.LESIONNAMINGNUMBER_KWD: lesion_count, ROI.MEASUREMENTNUMBER_KWD: roi_count}
 

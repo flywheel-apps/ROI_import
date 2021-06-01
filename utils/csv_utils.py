@@ -142,7 +142,7 @@ def get_roi_from_row(series, file, session):
     roi_dict[ROI.PATIENTID_KWD] = file.info.get("PatientID")
     roi_dict[ROI.CACHEDSTATS_KWD] = stats
 
-    roi_number_dict = fu.get_roi_number(session, roi_dict.get(ROI.ROITYPE_HDR))
+    roi_number_dict = fu.get_roi_number(session)
     roi_dict.update(roi_number_dict)
     roi_dict[ROI.TIMEPOINTID_KWD] = "TimepointId"
 
