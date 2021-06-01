@@ -1,4 +1,4 @@
-# ROI import
+ # ROI import
 
 ## Description
 
@@ -35,12 +35,12 @@ They are also sensitive in general, please be careful not to hurt their feelings
 
 ### Flywheel Location Columns:
 
-The columns **Group**, **Project**, **Subject**, and **Session* all indicate where in 
+The columns **group**, **project**, **subject**, and **session* all indicate where in 
 Flywheel the file is that the ROI is being attached to.  
 
 *REQUIRED*:
 
- - **Group**:  The flywheel *group ID*, which is different from the group NAME.  the 
+ - **group**:  The flywheel *group ID*, which is different from the group NAME.  the 
  group ID is usually a short string of all lowercase letters, and can be found in the 
  flywheel path displayed at the top of the page when viewing a flywheel project. 
  This is highlighted in yellow in the picture below.  This is different from the *Group 
@@ -48,21 +48,21 @@ Flywheel the file is that the ROI is being attached to.
  below, the Group Name is "Scientific Solutions", and the Group ID is "scien".  In this
  case, "scien" would be the correct string to use in the **Group** Column.
  
- - **Project**: The flywheel *Project Label* that the file is in.  This can be found in 
+ - **project**: The flywheel *Project Label* that the file is in.  This can be found in 
  the flywheel path displayed at the top of the pate when viewing a flywheel project.
  This is highlighted in red in the picture below. 
  
  ![Flywheel Path](https://github.com/flywheel-apps/ROI_import/blob/main/content/fw_project_path.png)
 
  
- - **Subject**: The flywheel *Subject Label* of the subject that contains the file.
+ - **subject**: The flywheel *Subject Label* of the subject that contains the file.
  
- - **Session**: The flywheel *Session Label* of the session that contains the file.
+ - **session**: The flywheel *Session Label* of the session that contains the file.
  
- - **File**: The full name of the file in flywheel to add the ROI to.
+ - **file**: The full name of the file in flywheel to add the ROI to.
  
  *OPTIONAL*:
- - **User Origin**:  The flywheel user ID (email address) of the person who
+ - **user origin**:  The flywheel user ID (email address) of the person who
   created this ROI
 
 
@@ -72,15 +72,15 @@ Flywheel the file is that the ROI is being attached to.
 
 *REQUIRED*:
 
-- **X min**: The minimum X coordinate of the ROI
+- **x min**: The minimum X coordinate of the ROI
 
-- **Y min**: The minimum Y coordinate of the ROI
+- **y min**: The minimum Y coordinate of the ROI
 
-- **X max**: The maximum X coordinate of the ROI
+- **x max**: The maximum X coordinate of the ROI
 
-- **Y max**: The maximum Y coordinate of the ROI
+- **y max**: The maximum Y coordinate of the ROI
 
-- **ROI type**: The type of ROI (Valid types are "EllipticalRoi" and "RectangleRoi")
+- **roi type**: The type of ROI (Valid types are "EllipticalRoi" and "RectangleRoi")
 
 *OPTIONAL*:
 
@@ -152,7 +152,7 @@ The log is roughly broken into 3 parts:  First, the configuration settings are l
 
 Following this, each row will generate a report.  For example, given the row:
 
-| Group | Project | Subject | Session | File | X min | X max | Y min | Y max | ROI type |
+| group | project | subject | session | file | x min | x max | y min | y max | roi type |
 | ------ | ------ | ------- | ------- | ---- | ----- | ----- | ----- | ----- | -------- |
 | samplegroup | sampleproject | samplesubject | samplesession | samplefile | 217.813 | 262.522 | 179.714 | 216.0958 | RectangleRoi |
 
