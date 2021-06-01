@@ -67,7 +67,8 @@ def get_handle_from_row(series):
         ROI.HASBOUNDINGBOX_KWD: panda_pop(series, ROI.HASBOUNDINGBOX_HDR, True),
         ROI.HASMOVED_KWD: panda_pop(series, ROI.HASMOVED_HDR, False),
         ROI.MOVESINDEPENDENTLY_KWD: panda_pop(series, ROI.MOVESINDEPENDENTLY_HDR, False),
-        ROI.BOUNDINGBOX_KWD: bounding_dict,
+        ROI.ACTIVE_KWD: panda_pop(series, ROI.ACTIVE_HDR, False),
+        # ROI.BOUNDINGBOX_KWD: bounding_dict,
     }
 
     # This summarizes the final form of the dictionary.

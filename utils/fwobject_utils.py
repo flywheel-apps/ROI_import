@@ -33,7 +33,8 @@ def get_uids_from_filename(file):
     return id_dict
 
 
-def get_roi_number(session, roi_type):
+# def get_roi_number(session, roi_type):
+def get_roi_number(session):
     """Gets the ROI number from a session if there are previously existing ROI's
     
     Args:
@@ -48,36 +49,31 @@ def get_roi_number(session, roi_type):
     sinfo = session.info
 
     # If the session has the metadata object "ohifViewer.measurements.<roi_type>":
+    # Updated to count ALL roi's to determine ROI number -
+    # as of 06/01/2021 this is how I think it works ( as far as I can tell)
+
     if (
         ROI.NAMESPACE_KWD in sinfo
         and ROI.MEASUREMENTS_KWD in sinfo[ROI.NAMESPACE_KWD]
-        and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
     ):
+        #and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+    #):
 
-        # See how many ROI's there are already present of this type
-        rois = sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roi_type]
-        if len(rois) == 0:
-            # If it's zero, we start at one.
-            new_num = 1
 
+        roi_count = [rc.get(ROI.MEASUREMENTNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
+        lesion_count = [rc.get(ROI.LESIONNAMINGNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
+
+        if len(roi_count) == 0:
+            roi_count = 1
         else:
-            # sometimes things can get wonky so we just look at the maximum of the two possible
-            # items that are used to assign ROI numbers
-            # lesion_nums = [r.get(ROI.LESIONNAMINGNUMBER_KWD, -1) for r in rois]
-            lesion_nums = [0]
-            meausrement_nums = [r.get(ROI.MEASUREMENTNUMBER_KWD, -1) for r in rois]
+            roi_count = max(roi_count) + 1
 
-            mlesion = max(lesion_nums)
-            mnum = max(meausrement_nums)
+        if len(lesion_count) == 0:
+            lesion_count = 1
+        else:
+            lesion_count = max(lesion_count) + 1
 
-            new_num = max([mlesion, mnum])
-            new_num += 1
-
-    # if that metadata object doesn't exist we will create it later, for now we're measurement 1
-    else:
-        new_num = 1
-
-    number_dict = {ROI.LESIONNAMINGNUMBER_KWD: new_num, ROI.MEASUREMENTNUMBER_KWD: new_num}
+    number_dict = {ROI.LESIONNAMINGNUMBER_KWD: lesion_count, ROI.MEASUREMENTNUMBER_KWD: roi_count}
 
     return number_dict
 

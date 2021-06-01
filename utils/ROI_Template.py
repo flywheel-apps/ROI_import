@@ -99,6 +99,12 @@ STUDYINSTANCEUID_HDR = "StudyInstanceUID"
 
 
 # suffix _KWD means These are KEYWORDS for the metadata.
+RECTANGLE_KWD = "RectangleRoi"
+ELLIPTICAL_KWD = "EllipticalRoi"
+
+VALIDROI_KWD = [RECTANGLE_KWD, ELLIPTICAL_KWD]
+
+
 HIGHLIGHT_KWD="highlight"
 X_KWD="x"
 Y_KWD="y"
@@ -134,7 +140,7 @@ MIN_KWD = "min"
 STDDEV_KWD = "stdDev"
 VARIANCE_KWD = "variance"
 
-HANDLE_KWD = "handle"
+HANDLE_KWD = "handles"
 SERIESINSTANCEUID_KWD = "SeriesInstanceUID"
 SOPINSTANCEUID_KWD = "SOPInstanceUID"
 STUDYINSTANCEUID_KWD = "StudyInstanceUID"
@@ -151,6 +157,9 @@ MEASUREMENTNUMBER_KWD = "measurementNumber"
 MEASUREMENTS_KWD = "measurements"
 
 NAMESPACE_KWD = "ohifViewer"
+
+MOVING_KWD = "moving"
+USERID_KWD = "userId"
 
 IMAGEPATH_KWD = "imagePath"
 UUID_KWD = "uuid"
@@ -218,7 +227,7 @@ class TextBox:
         self.hasMoved = kwargs.get(HASMOVED_KWD, False)
         self.movesIndependently = kwargs.get(MOVESINDEPENDENTLY_KWD, False)
         self.boundingBox = BoundingBox(**kwargs.get(BOUNDINGBOX_KWD, {}))
-        self.active = kwargs.get(ACTIVE_KWD, True)
+        self.active = kwargs.get(ACTIVE_KWD, False)
 
     def to_dict(self):
         output_dict = {
@@ -344,7 +353,7 @@ class ROI:
         self.toolType = None
 
         # Some important values we'll call out specifically for consistency
-        self.visible = None
+        self.visible = False
         self.active = False
         self.description = None
         self.location = None
@@ -353,6 +362,9 @@ class ROI:
         self.measurementNumber = None
         self.timepointId = None
         self.cachedStats = None
+        self.userId = None
+        self.uuid = ""
+        self.id = ""
         self.kwargs = None
 
     def generate_imagePath(self):
@@ -397,7 +409,7 @@ class ROI:
 
         # Some important values we'll call out specifically for consistency
         self.visible = kwargs.pop(VISIBLE_KWD, True)
-        self.active = kwargs.pop(ACTIVE_KWD, True)
+        self.active = kwargs.pop(ACTIVE_KWD, False)
         self.description = kwargs.pop(DESCRIPTION_KWD, None)
         self.location = kwargs.pop(LOCATION_KWD, None)
 
@@ -414,6 +426,9 @@ class ROI:
         self.measurementNumber = kwargs.pop(MEASUREMENTNUMBER_KWD)
         self.timepointId = kwargs.pop(TIMEPOINTID_KWD)
         self.cachedStats = Cached_stats(self.handle, kwargs.pop(CACHEDSTATS_KWD, {}))
+        self.userId = kwargs.pop(USERID_KWD, "")
+        self.uuid = kwargs.pop(UUID_KWD, "")
+        # self.id = ?
 
         self.kwargs = kwargs
 
@@ -435,7 +450,10 @@ class ROI:
             MEASUREMENTNUMBER_KWD: self.measurementNumber,
             TIMEPOINTID_KWD: self.timepointId,
             PATIENTID_KWD: self.patientId,
-            ACTIVE_KWD: self.active
+            ACTIVE_KWD: self.active,
+            USERID_KWD: self.userId,
+            UUID_KWD: self.uuid,
+            ID_KWD: self.id
         }
 
         return output_dict
