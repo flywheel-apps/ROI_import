@@ -50,34 +50,34 @@ log = logging.getLogger("ROI")
 # aren't
 
 # Suffix _HDR means this  comes from the input file
-ACTIVE_HDR="active"
-GROUP_HDR="group"
-PROJECT_HDR="project"
-SUBJECT_HDR="subject"
-SESSION_HDR="session"
-FILE_HDR="file"
+ACTIVE_HDR = "active"
+GROUP_HDR = "group"
+PROJECT_HDR = "project"
+SUBJECT_HDR = "subject"
+SESSION_HDR = "session"
+FILE_HDR = "file"
 
 MAPPING_COLUMN = FILE_HDR
 
-FILETYPE_HDR="file type"
-LOCATION_HDR="location"
-DESCRIPTION_HDR="description"
-XMIN_HDR="x min"
-XMAX_HDR="x max"
-YMIN_HDR="y min"
-YMAX_HDR="y max"
-USERORIGIN_HDR="user origin"
-VISIBLE_HDR="visible"
-ROITYPE_HDR="roi type"
-HIGHLIGHT_HDR="highlight"
-HEIGHT_HDR="height"
-LEFT_HDR="left"
-RIGHT_HDR="right"
-TOP_HDR="top"
-WIDTH_HDR="width"
+FILETYPE_HDR = "file type"
+LOCATION_HDR = "location"
+DESCRIPTION_HDR = "description"
+XMIN_HDR = "x min"
+XMAX_HDR = "x max"
+YMIN_HDR = "y min"
+YMAX_HDR = "y max"
+USERORIGIN_HDR = "user origin"
+VISIBLE_HDR = "visible"
+ROITYPE_HDR = "roi type"
+HIGHLIGHT_HDR = "highlight"
+HEIGHT_HDR = "height"
+LEFT_HDR = "left"
+RIGHT_HDR = "right"
+TOP_HDR = "top"
+WIDTH_HDR = "width"
 
 
-ALLOWEDOUTSIDE_HDR="allowedOutsideImage"
+ALLOWEDOUTSIDE_HDR = "allowedOutsideImage"
 DRAWNINDEPENDENTLY_HDR = "drawnIndependently"
 HASBOUNDINGBOX_HDR = "hasBoundingBox"
 HASMOVED_HDR = "hasMoved"
@@ -97,7 +97,6 @@ SOPINSTANCEUID_HDR = "SOPInstanceUID"
 STUDYINSTANCEUID_HDR = "StudyInstanceUID"
 
 
-
 # suffix _KWD means These are KEYWORDS for the metadata.
 RECTANGLE_KWD = "RectangleRoi"
 ELLIPTICAL_KWD = "EllipticalRoi"
@@ -105,22 +104,22 @@ ELLIPTICAL_KWD = "EllipticalRoi"
 VALIDROI_KWD = [RECTANGLE_KWD, ELLIPTICAL_KWD]
 
 
-HIGHLIGHT_KWD="highlight"
-X_KWD="x"
-Y_KWD="y"
-HEIGHT_KWD="height"
-LEFT_KWD="left"
-RIGHT_KWD="right"
-TOP_KWD="top"
-WIDTH_KWD="width"
-ACTIVE_KWD="active"
+HIGHLIGHT_KWD = "highlight"
+X_KWD = "x"
+Y_KWD = "y"
+HEIGHT_KWD = "height"
+LEFT_KWD = "left"
+RIGHT_KWD = "right"
+TOP_KWD = "top"
+WIDTH_KWD = "width"
+ACTIVE_KWD = "active"
 VISIBLE_KWD = VISIBLE_HDR
 ROITYPE_KWD = "toolType"
 DESCRIPTION_KWD = DESCRIPTION_HDR
 LOCATION_KWD = LOCATION_HDR
 USERORIGIN_KWD = USERORIGIN_HDR
 
-ALLOWEDOUTSIDE_KWD= "allowedOutsideImage"
+ALLOWEDOUTSIDE_KWD = "allowedOutsideImage"
 DRAWNINDEPENDENTLY_KWD = "drawnIndependently"
 HASBOUNDINGBOX_KWD = "hasBoundingBox"
 HASMOVED_KWD = "hasMoved"
@@ -167,14 +166,13 @@ ID_KWD = "_id"
 
 FORBIDDEN_KWD = [IMAGEPATH_KWD, UUID_KWD, ID_KWD]
 
-MANDATORY_KWD = [HANDLE_KWD,
-            SERIESINSTANCEUID_KWD,
-            SOPINSTANCEUID_KWD,
-            STUDYINSTANCEUID_KWD,
-            ROITYPE_KWD]
-
-
-
+MANDATORY_KWD = [
+    HANDLE_KWD,
+    SERIESINSTANCEUID_KWD,
+    SOPINSTANCEUID_KWD,
+    STUDYINSTANCEUID_KWD,
+    ROITYPE_KWD,
+]
 
 
 class BoundingBox:
@@ -220,7 +218,9 @@ class Coords:
 
 class TextBox:
     def __init__(self, **kwargs):
-        self.coords = Coords(kwargs.get(X_KWD), kwargs.get(Y_KWD), kwargs.get(ACTIVE_KWD))
+        self.coords = Coords(
+            kwargs.get(X_KWD), kwargs.get(Y_KWD), kwargs.get(ACTIVE_KWD)
+        )
         self.allowedOutsideImage = kwargs.get(ALLOWEDOUTSIDE_KWD, True)
         self.drawnIndependently = kwargs.get(DRAWNINDEPENDENTLY_KWD, True)
         self.hasBoundingBox = kwargs.get(HASBOUNDINGBOX_KWD, True)
@@ -237,7 +237,7 @@ class TextBox:
             HASMOVED_KWD: self.hasMoved,
             MOVESINDEPENDENTLY_KWD: self.movesIndependently,
             BOUNDINGBOX_KWD: self.boundingBox.to_dict(),
-            ACTIVE_KWD: self.active
+            ACTIVE_KWD: self.active,
         }
         output_dict.update(self.coords.to_dict())
 
@@ -251,13 +251,13 @@ class Handle:
         if START_KWD not in kwargs or END_KWD not in kwargs:
             log.error(f"ROI requires both '{START_KWD}' and '{END_KWD}'")
             pass
-        
 
-        
         start = kwargs.get(START_KWD, {})
         log.debug("start:")
         log.debug(start)
-        self.start = Coords(start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, False))
+        self.start = Coords(
+            start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, False)
+        )
         self.start.highlight = start.get(HIGHLIGHT_KWD, True)
 
         end = kwargs.get(END_KWD, {})
@@ -453,7 +453,7 @@ class ROI:
             ACTIVE_KWD: self.active,
             USERID_KWD: self.userId,
             UUID_KWD: self.uuid,
-            ID_KWD: self.id
+            ID_KWD: self.id,
         }
 
         return output_dict

@@ -10,9 +10,10 @@ from utils import load_data as ld, import_data as id, csv_utils as cu
 
 log = logging.getLogger()
 
+
 def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
     """Imports ROI's from a CSV file into Flywheel
-    
+
     This function initializes a flywheel Client, loads a CSV file, ingests that data
     into a format that can be used to generate ROI's, uploads those to flywheel, and
     saves a report.
@@ -56,7 +57,7 @@ def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
 
 def process_gear_inputs(context):
     """Process the flywheel inputs/config options for running the main script
-    
+
     Takes the flywheel gear toolkit context object and extracts the inputs and config
     options provided to the gear.
     Args:
@@ -89,7 +90,6 @@ def process_gear_inputs(context):
     else:
         context.init_logging("debug")
     context.log_config()
-    
 
     # Get the path of the CSV file provided by the user
     csv_file = context.get_input_path("csv_file")

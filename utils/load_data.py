@@ -13,7 +13,7 @@ def load_excel_dataframe(excel_path, firstrow_spec, sheets_spec=0):
 
 def load_text_dataframe(df_path, firstrow_spec, delimiter_spec):
     """Loads a plain text (non-excel style) delimited file into a numpy dataframe
-    
+
     Args:
         df_path (Pathlike): The path of the file that will be made into a dataframe
         firstrow_spec (integer): The row in the CSV file that contains the headers of

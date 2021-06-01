@@ -1,19 +1,19 @@
 def get_containers_at_level(fw, container, level):
     """Given a starting container, return parent or children containers of that container.
-    
+
     Returns a parent, or children of a flywheel container. The level to return is specified
     by the string `level`.  If the level is HIGHER than the container (a parent), that
     single parent is returned.  if the level is LOWER than the container (a child), then
     all children of that type are returned.  The flywheel Container Hierarchy is as follows:
-    
+
     1. Group
     2. Project
     3. Subject
     4. Session
     5. Acquisition
-    
+
     Essentially, projects through acquisitions can also have files and analysis' attached to them.
-    
+
     Args:
         fw (flywheel.Client): flywheel SDK client
         container (flywheel.ContainerReference): A flywheel container (project, session, subject,
@@ -267,14 +267,14 @@ def generate_path_to_container(
     analysis=None,
 ):
     """Generates a flywheel path to an object that can be used with `fw.lookup`.
-    
+
     path format is <group>/<project>/<subject>/<session>/<acquisition>/<analysis>/<file>
     Everything following "group" is optional.  For example, if I pass in a flywheel subject, this
     would only return <group>/<project>/<subject>
-    
+
     If I pass in a file attached at the session level, it would return
     <group>/<project>/<subject>/<session>/<file>
-    
+
     Args:
         fw (flywheel.Client): flywheel SDK client
         container (Flywheel object): the flywheel container or file to map

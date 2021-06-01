@@ -11,9 +11,9 @@ log = logging.getLogger(__name__)
 
 def get_uids_from_filename(file):
     """Extract the UUID's of the file and generate a path for the ROI
-    
+
     This is how the OHIF viewer links ROI's to files in flywheel.
-    
+
     Args:
         file (flywheel.File): A DICOM file to extract UID's from
 
@@ -29,14 +29,14 @@ def get_uids_from_filename(file):
 
     for id, value in id_dict.items():
         log.info(f"Found {value} for {id}")
-        
+
     return id_dict
 
 
 # def get_roi_number(session, roi_type):
 def get_roi_number(session):
     """Gets the ROI number from a session if there are previously existing ROI's
-    
+
     Args:
         session (flywheel.Session): the session that we are adding an ROI to
         roi_type (string): The type of ROI we're adding.
@@ -54,16 +54,22 @@ def get_roi_number(session):
     lesion_count = []
     roi_count = []
 
-    if (
-        ROI.NAMESPACE_KWD in sinfo
-        and ROI.MEASUREMENTS_KWD in sinfo[ROI.NAMESPACE_KWD]
-    ):
-        #and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
-    #):
+    if ROI.NAMESPACE_KWD in sinfo and ROI.MEASUREMENTS_KWD in sinfo[ROI.NAMESPACE_KWD]:
+        # and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+        # ):
 
-
-        roi_count = [rc.get(ROI.MEASUREMENTNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
-        lesion_count = [rc.get(ROI.LESIONNAMINGNUMBER_KWD, 0) for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD] for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype] if rc]
+        roi_count = [
+            rc.get(ROI.MEASUREMENTNUMBER_KWD, 0)
+            for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+            for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype]
+            if rc
+        ]
+        lesion_count = [
+            rc.get(ROI.LESIONNAMINGNUMBER_KWD, 0)
+            for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+            for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype]
+            if rc
+        ]
 
     if len(roi_count) == 0:
         roi_count = 1
@@ -75,17 +81,20 @@ def get_roi_number(session):
     else:
         lesion_count = max(lesion_count) + 1
 
-    number_dict = {ROI.LESIONNAMINGNUMBER_KWD: lesion_count, ROI.MEASUREMENTNUMBER_KWD: roi_count}
+    number_dict = {
+        ROI.LESIONNAMINGNUMBER_KWD: lesion_count,
+        ROI.MEASUREMENTNUMBER_KWD: roi_count,
+    }
 
     return number_dict
 
 
 def get_objects_for_processing(fw, container, level, get_files):
     """Returns flywheel child containers of files.
-    
+
     Gets all containers at a certain level (or files of containers at a certain level) that are
     children of a given flywheel container.
-    
+
     Args:
         fw (flywheel.Client): the flywheel SDK Client
         container (flywheel.ContainerReference): a flywheel container. This will be the "parent"
@@ -170,10 +179,10 @@ def update(d, u, overwrite):
 
 def cleanse_the_filthy_numpy(dict):
     """change inputs that are numpy classes to python classes
-    
+
     when you read a csv with Pandas, it makes "int" "numpy_int", and flywheel doesn't like that.
     Does the same for floats and bools, I think.  This fixes it
-    
+
     Args:
         dict (dict): a dict
 

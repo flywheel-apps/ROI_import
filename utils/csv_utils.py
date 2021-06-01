@@ -17,7 +17,7 @@ def get_stats_from_row(series):
         ROI.MEAN_KWD: panda_pop(series, ROI.MEAN_HDR, 0),
         ROI.MIN_KWD: panda_pop(series, ROI.MIN_HDR, 0),
         ROI.STDDEV_KWD: panda_pop(series, ROI.STDDEV_HDR, 0),
-        ROI.VARIANCE_KWD: panda_pop(series, ROI.VARIANCE_HDR, 0)
+        ROI.VARIANCE_KWD: panda_pop(series, ROI.VARIANCE_HDR, 0),
     }
 
     return stats_dict
@@ -25,13 +25,13 @@ def get_stats_from_row(series):
 
 def get_handle_from_row(series):
     """Generate the flywheel handle from the series.
-    
+
     The only truly "required" columns needed to create a handle from the series are:
     X min
     Y min
     X max
     Y max
-    
+
     Args:
         series (pandas.Series): a row from a dataframe describing an ROI
 
@@ -66,7 +66,9 @@ def get_handle_from_row(series):
         ROI.DRAWNINDEPENDENTLY_KWD: panda_pop(series, ROI.DRAWNINDEPENDENTLY_HDR, True),
         ROI.HASBOUNDINGBOX_KWD: panda_pop(series, ROI.HASBOUNDINGBOX_HDR, True),
         ROI.HASMOVED_KWD: panda_pop(series, ROI.HASMOVED_HDR, False),
-        ROI.MOVESINDEPENDENTLY_KWD: panda_pop(series, ROI.MOVESINDEPENDENTLY_HDR, False),
+        ROI.MOVESINDEPENDENTLY_KWD: panda_pop(
+            series, ROI.MOVESINDEPENDENTLY_HDR, False
+        ),
         ROI.ACTIVE_KWD: panda_pop(series, ROI.ACTIVE_HDR, False),
         # ROI.BOUNDINGBOX_KWD: bounding_dict,
     }
@@ -78,11 +80,13 @@ def get_handle_from_row(series):
         ROI.INITIALROTATION_KWD: panda_pop(series, ROI.INITIALROTATION_HDR, 0),
         ROI.TEXTBOX_KWD: textbox_dict,
     }
-    
-    log.debug('handle:')
+
+    log.debug("handle:")
     log.debug(handle_dict)
     if ROI.HANDLE_KWD in series:
-        log.warning(f"Column name{ROI.HANDLE_KWD} is reserved.  Data will not be uploaded.")
+        log.warning(
+            f"Column name{ROI.HANDLE_KWD} is reserved.  Data will not be uploaded."
+        )
         series.pop(ROI.HANDLE_KWD)
 
     return handle_dict
@@ -90,12 +94,12 @@ def get_handle_from_row(series):
 
 def panda_pop(series, key, default=None):
     """recreate the behavior of a dictionary "pop" for a pandas series
-    
+
     behavior:
     if element exists, return the value and remove the element
     if the element doesn't exist, return the default
     the default default is "None"
-    
+
     Args:
         series (pandas.Series): The series to pop from
         key (string): the key to look for and pop
@@ -112,7 +116,7 @@ def panda_pop(series, key, default=None):
 
 def get_roi_from_row(series, file, session):
     """Generate the dictionaries from a pandas series to create the ROI in flywheel
-    
+
     Args:
         series (pandas.Series): a row from a dataframe describing an ROI
         file (flywheel.File): a flywheel file to attach the ROI to
@@ -135,10 +139,10 @@ def get_roi_from_row(series, file, session):
     roi_dict = {ROI.HANDLE_KWD: handle}
     roi_dict.update(id_dict)
     roi_dict[ROI.ROITYPE_KWD] = panda_pop(series, ROI.ROITYPE_HDR)
-    
+
     # This adds all remaining keys to the roi dict.
     roi_dict.update(series)
-    
+
     roi_dict[ROI.PATIENTID_KWD] = file.info.get("PatientID")
     roi_dict[ROI.CACHEDSTATS_KWD] = stats
 
@@ -154,7 +158,7 @@ def get_roi_from_row(series, file, session):
 
 def save_df_to_csv(df, output_dir):
     """saves a dataframe to the specified output directory with the name "Data_Import_Status_Report.csv"
-    
+
     Args:
         df (pandas.DataFrame): the dataframe to save
         output_dir (Pathlike): the directory to save to
@@ -168,7 +172,7 @@ def save_df_to_csv(df, output_dir):
 
 def get_fw_path(series):
     """A function to consolidate the extraction of the fw object's location
-    
+
     Args:
         series (pandas.Series): a pandas series, which is a single row from the ROI
             dataframe
