@@ -135,11 +135,11 @@ STDDEV_KWD = "stdDev"
 VARIANCE_KWD = "variance"
 
 HANDLE_KWD = "handle"
-SERIESINSTANCEUID_KWD = "seriesInstanceUID"
-SOPINSTANCEUID_KWD = "sopInstanceUID"
-STUDYINSTANCEUID_KWD = "studyInstanceUID"
+SERIESINSTANCEUID_KWD = "SeriesInstanceUID"
+SOPINSTANCEUID_KWD = "SOPInstanceUID"
+STUDYINSTANCEUID_KWD = "StudyInstanceUID"
 
-PATIENTID_KWD = "patientId"
+PATIENTID_KWD = "PatientID"
 CACHEDSTATS_KWD = "cachedStats"
 TIMEPOINTID_KWD = "timepointId"
 FLYWHEELORIGIN_KWD = "flywheelOrigin"
@@ -218,6 +218,7 @@ class TextBox:
         self.hasMoved = kwargs.get(HASMOVED_KWD, False)
         self.movesIndependently = kwargs.get(MOVESINDEPENDENTLY_KWD, False)
         self.boundingBox = BoundingBox(**kwargs.get(BOUNDINGBOX_KWD, {}))
+        self.active = kwargs.get(ACTIVE_KWD, True)
 
     def to_dict(self):
         output_dict = {
@@ -227,6 +228,7 @@ class TextBox:
             HASMOVED_KWD: self.hasMoved,
             MOVESINDEPENDENTLY_KWD: self.movesIndependently,
             BOUNDINGBOX_KWD: self.boundingBox.to_dict(),
+            ACTIVE_KWD: self.active
         }
         output_dict.update(self.coords.to_dict())
 
@@ -246,7 +248,7 @@ class Handle:
         start = kwargs.get(START_KWD, {})
         log.debug("start:")
         log.debug(start)
-        self.start = Coords(start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, True))
+        self.start = Coords(start.get(X_KWD), start.get(Y_KWD), start.get(ACTIVE_KWD, False))
         self.start.highlight = start.get(HIGHLIGHT_KWD, True)
 
         end = kwargs.get(END_KWD, {})
@@ -343,7 +345,7 @@ class ROI:
 
         # Some important values we'll call out specifically for consistency
         self.visible = None
-        self.active = None
+        self.active = False
         self.description = None
         self.location = None
         self.flywheelOrigin = None
@@ -422,8 +424,8 @@ class ROI:
             CACHEDSTATS_KWD: self.cachedStats.to_dict(),
             FLYWHEELORIGIN_KWD: self.flywheelOrigin,
             SERIESINSTANCEUID_KWD: self.seriesInstanceUid,
-            SOPINSTANCEUID_KWD: self.studyInstanceUid,
-            STUDYINSTANCEUID_KWD: self.sopInstanceUid,
+            SOPINSTANCEUID_KWD: self.sopInstanceUid,
+            STUDYINSTANCEUID_KWD: self.studyInstanceUid,
             IMAGEPATH_KWD: self.imagePath,
             VISIBLE_KWD: self.visible,
             DESCRIPTION_KWD: self.description,
@@ -433,6 +435,7 @@ class ROI:
             MEASUREMENTNUMBER_KWD: self.measurementNumber,
             TIMEPOINTID_KWD: self.timepointId,
             PATIENTID_KWD: self.patientId,
+            ACTIVE_KWD: self.active
         }
 
         return output_dict

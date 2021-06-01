@@ -43,14 +43,14 @@ def get_handle_from_row(series):
     start_dict = {
         ROI.X_KWD: panda_pop(series, ROI.XMIN_HDR),
         ROI.Y_KWD: panda_pop(series, ROI.YMIN_HDR),
-        ROI.ACTIVE_HDR: panda_pop(series, ROI.ACTIVE_HDR, True),
+        ROI.ACTIVE_HDR: panda_pop(series, ROI.ACTIVE_HDR, False),
         ROI.HIGHLIGHT_KWD: panda_pop(series, ROI.HIGHLIGHT_HDR, False),
     }
 
     end_dict = {
         ROI.X_KWD: panda_pop(series, ROI.XMAX_HDR),
         ROI.Y_KWD: panda_pop(series, ROI.YMAX_HDR),
-        ROI.ACTIVE_KWD: panda_pop(series, ROI.ACTIVE_HDR, True),
+        ROI.ACTIVE_KWD: panda_pop(series, ROI.ACTIVE_HDR, False),
         ROI.HIGHLIGHT_KWD: panda_pop(series, ROI.HIGHLIGHT_HDR, False),
     }
 

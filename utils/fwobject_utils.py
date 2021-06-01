@@ -63,7 +63,8 @@ def get_roi_number(session, roi_type):
         else:
             # sometimes things can get wonky so we just look at the maximum of the two possible
             # items that are used to assign ROI numbers
-            lesion_nums = [r.get(ROI.LESIONNAMINGNUMBER_KWD, -1) for r in rois]
+            # lesion_nums = [r.get(ROI.LESIONNAMINGNUMBER_KWD, -1) for r in rois]
+            lesion_nums = [0]
             meausrement_nums = [r.get(ROI.MEASUREMENTNUMBER_KWD, -1) for r in rois]
 
             mlesion = max(lesion_nums)
