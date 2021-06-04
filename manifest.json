@@ -1,5 +1,5 @@
 {
-    "name": "import-roi",
+    "name": "import-rois",
     "label": "Import ROIs",
     "description": "A gear for importing metadata from a CSV file into flywheel objects",
     "author": "Flywheel SSE",
@@ -7,9 +7,9 @@
     "license": "MIT",
     "source": "https://github.com/flywheel-apps/ROI_import",
     "url": "https://github.com/flywheel-apps/ROI_import",
-    "version": "1.0.10",
+    "version": "1.1.0",
     "custom": {
-        "gear-builder": {"category": "analysis", "image": "flywheel/import_roi:1.0.10"},
+        "gear-builder": {"category": "analysis", "image": "flywheel/import-rois:1.1.0"},
         "flywheel": {"suite": "Metadata I/O"}
     },
     "inputs": {
