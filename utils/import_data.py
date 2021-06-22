@@ -8,6 +8,7 @@ import logging
 from utils import flywheel_helpers as fh
 import utils.fwobject_utils as fu
 import utils.csv_utils as cu
+import utils.ROI_Template as ROI
 
 # df_path = '/Users/davidparker/Documents/Flywheel/SSE/MyWork/Gears/Metadata_import_Errorprone/Data_Entry_2017_test.csv'
 # firstrow_spec = 1
@@ -20,7 +21,7 @@ log = logging.getLogger("__main__")
 
 def import_data(fw, df, dry_run=False):
     """Imports a pandas DataFrame into flywheel as ROI's
-    
+
     Args:
         fw (flywheel.Client): the flywheel Client
         df (pandas.DataFrame): The pandas dataframe generated from the input CSV file,
@@ -44,10 +45,10 @@ def import_data(fw, df, dry_run=False):
 
     # If the "User Origin" column is not present in the Dataframe, generate it using
     # the user ID of the person running this gear (or logged into the flywheel client)
-    if "User Origin" not in df:
+    if ROI.USERORIGIN_HDR not in df:
         user = fw.get_current_user()
         user_id = user.id
-        df["User Origin"] = user_id
+        df[ROI.USERORIGIN_HDR] = user_id
 
     success_counter = 0
 
@@ -79,6 +80,7 @@ def import_data(fw, df, dry_run=False):
 
                 # use flywheel lookup to see if the instance can find the path
                 ses = fw.lookup(lookup_string)
+                ses = ses.reload()
             except ApiException:
                 log.error(
                     f"No session found for: {lookup_string}\n please double check.  Skipping "
@@ -106,18 +108,19 @@ def import_data(fw, df, dry_run=False):
             matches = [
                 m for m in objects_for_processing if m.get("name") == object_name
             ]
-            
-            log.debug(f"No matches found for {object_name}, appending File type '.{series.get('File Type')}'")
-            
+
             if len(matches) == 0:
+                log.debug(
+                    f"No matches found for {object_name}, appending File type '.{series.get('file type')}'"
+                )
                 object_name += f".{series.get('File Type')}"
-            
+
             log.debug(f"looking for {object_name}")
-            
+
             matches = [
                 m for m in objects_for_processing if m.get("name") == object_name
             ]
-            
+
             # Names must be unique, so warn if there are multiple matches.
             if len(matches) > 1:
                 log.warning(

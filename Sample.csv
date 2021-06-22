@@ -1,2 +1,2 @@
-Group,Project,Subject,Session,File,File Type,location,description,X min,X max,Y min,Y max,User Origin,visible,ROI type
+group,project,subject,session,file,file type,location,description,x min,x max,x min,x max,user origin,visible,roi type
 required,required,required,required,required,optional,optional,optional,required,required,required,required,optional,optional,required

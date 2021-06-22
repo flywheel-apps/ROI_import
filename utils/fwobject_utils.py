@@ -4,15 +4,16 @@ import numpy as np
 import logging
 
 from utils import flywheel_helpers as fh
+from utils import ROI_Template as ROI
 
-log = logging.getLogger("__main__")
+log = logging.getLogger(__name__)
 
 
 def get_uids_from_filename(file):
     """Extract the UUID's of the file and generate a path for the ROI
-    
+
     This is how the OHIF viewer links ROI's to files in flywheel.
-    
+
     Args:
         file (flywheel.File): A DICOM file to extract UID's from
 
@@ -21,21 +22,21 @@ def get_uids_from_filename(file):
 
     """
     id_dict = {
-        "SeriesInstanceUID": None,
-        "SOPInstanceUID": None,
-        "StudyInstanceUID": None,
+        ROI.SERIESINSTANCEUID_KWD: file.info.get(ROI.SERIESINSTANCEUID_HDR),
+        ROI.SOPINSTANCEUID_KWD: file.info.get(ROI.SOPINSTANCEUID_HDR),
+        ROI.STUDYINSTANCEUID_KWD: file.info.get(ROI.STUDYINSTANCEUID_HDR),
     }
 
-    for id in id_dict.keys():
-        value = file.info.get(id)
-        id_dict[id] = value
+    for id, value in id_dict.items():
         log.info(f"Found {value} for {id}")
+
     return id_dict
 
 
-def get_roi_number(session, roi_type):
+# def get_roi_number(session, roi_type):
+def get_roi_number(session):
     """Gets the ROI number from a session if there are previously existing ROI's
-    
+
     Args:
         session (flywheel.Session): the session that we are adding an ROI to
         roi_type (string): The type of ROI we're adding.
@@ -48,45 +49,52 @@ def get_roi_number(session, roi_type):
     sinfo = session.info
 
     # If the session has the metadata object "ohifViewer.measurements.<roi_type>":
-    if (
-        "ohifViewer" in sinfo
-        and "measurements" in sinfo["ohifViewer"]
-        and roi_type in sinfo["ohifViewer"]["measurements"]
-    ):
+    # Updated to count ALL roi's to determine ROI number -
+    # as of 06/01/2021 this is how I think it works ( as far as I can tell)
+    lesion_count = []
+    roi_count = []
 
-        # See how many ROI's there are already present of this type
-        rois = sinfo["ohifViewer"]["measurements"][roi_type]
-        if len(rois) == 0:
-            # If it's zero, we start at one.
-            new_num = 1
+    if ROI.NAMESPACE_KWD in sinfo and ROI.MEASUREMENTS_KWD in sinfo[ROI.NAMESPACE_KWD]:
+        # and roi_type in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+        # ):
 
-        else:
-            # sometimes things can get wonky so we just look at the maximum of the two possible
-            # items that are used to assign ROI numbers
-            lesion_nums = [r.get("lesionNamingNumber", -1) for r in rois]
-            meausrement_nums = [r.get("measurementNumber", -1) for r in rois]
+        roi_count = [
+            rc.get(ROI.MEASUREMENTNUMBER_KWD, 0)
+            for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+            for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype]
+            if rc
+        ]
+        lesion_count = [
+            rc.get(ROI.LESIONNAMINGNUMBER_KWD, 0)
+            for roitype in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD]
+            for rc in sinfo[ROI.NAMESPACE_KWD][ROI.MEASUREMENTS_KWD][roitype]
+            if rc
+        ]
 
-            mlesion = max(lesion_nums)
-            mnum = max(meausrement_nums)
-
-            new_num = max([mlesion, mnum])
-            new_num += 1
-
-    # if that metadata object doesn't exist we will create it later, for now we're measurement 1
+    if len(roi_count) == 0:
+        roi_count = 1
     else:
-        new_num = 1
+        roi_count = max(roi_count) + 1
 
-    number_dict = {"lesionNamingNumber": new_num, "measurementNumber": new_num}
+    if len(lesion_count) == 0:
+        lesion_count = 1
+    else:
+        lesion_count = max(lesion_count) + 1
+
+    number_dict = {
+        ROI.LESIONNAMINGNUMBER_KWD: lesion_count,
+        ROI.MEASUREMENTNUMBER_KWD: roi_count,
+    }
 
     return number_dict
 
 
 def get_objects_for_processing(fw, container, level, get_files):
     """Returns flywheel child containers of files.
-    
+
     Gets all containers at a certain level (or files of containers at a certain level) that are
     children of a given flywheel container.
-    
+
     Args:
         fw (flywheel.Client): the flywheel SDK Client
         container (flywheel.ContainerReference): a flywheel container. This will be the "parent"
@@ -171,10 +179,10 @@ def update(d, u, overwrite):
 
 def cleanse_the_filthy_numpy(dict):
     """change inputs that are numpy classes to python classes
-    
+
     when you read a csv with Pandas, it makes "int" "numpy_int", and flywheel doesn't like that.
     Does the same for floats and bools, I think.  This fixes it
-    
+
     Args:
         dict (dict): a dict
 
