@@ -111,6 +111,7 @@ def get_objects_for_processing(fw, container, level, get_files):
 
     log.debug(f"Got container {container.label}")
     # Use the flywheel helper to get the containers at "level"
+    # in export ROI this is only getting acquisitions from sessions so scaling should be ok
     child_containers = fh.get_containers_at_level(fw, container, level)
     log.debug(f"Initial Pass: found {len(child_containers)} containers")
 

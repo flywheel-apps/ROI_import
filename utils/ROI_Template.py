@@ -49,6 +49,75 @@ log = logging.getLogger("ROI")
 # I think yes...so it's clear what keywords are supported by the template and which
 # aren't
 
+
+
+# @dataclass
+# class Property:
+#     roi: str = None
+#     csv: str = ""
+#     value: Any = None
+#
+#     def __post_init__(self):
+#         # If only a single value is passed in, we assume the key is the same for both the ROI and the CSV.
+#         if isinstance(self.roi, str) and self.csv == "":
+#             self.csv = self.roi
+#
+#
+#
+#
+# # These are for identifying columns in the CSV, they only exist in the CSV:
+# GROUP = Property("group")
+# PROJECT = Project("project")
+# SUBJECT = Property("subject")
+# SESSION = Property("session")
+# FILE = Property("file")
+# FILETYPE = Property("file type")
+#
+# MAPPING_COLUMN = FILE.csv
+#
+# # These properties are actually used in both (or rather are actual ROI properties to be coppied)
+# ACTIVE = Property("active")
+# LOCATION = Property("location")
+# DESCRIPTION = Property("description")
+# XMIN = Property('x',"x min")
+# XMAX = Property("x","x max")
+# YMIN = Property("y","y min")
+# YMAX = Property("y","y max")
+# USERORIGIN = Property("user origin")
+# VISIBLE = Property("visible")
+# ROITYPE = Property("toolType","roi type")
+# HIGHLIGHT = Property("highlight")
+# HEIGHT = Property("height")
+# LEFT = Property("left")
+# RIGHT = Property("right")
+# TOP = Property("top")
+# WIDTH = Property("width")
+#
+#
+# ALLOWEDOUTSIDE = Property("allowedOutsideImage")
+# DRAWNINDEPENDENTLY = Property("drawnIndependently")
+# HASBOUNDINGBOX = Property("hasBoundingBox")
+# HASMOVED = Property("hasMoved")
+# MOVESINDEPENDENTLY = Property("movesIndependently")
+# INITIALROTATION = Property("initialRotation")
+#
+# AREA = Property("area")
+# COUNT = Property("count")
+# MAX = Property("max")
+# MEAN = Property("mean")
+# MIN = Property("min")
+# STDDEV = Property("stdDev")
+# VARIANCE = Property("variance")
+#
+# HANDLE = Property("handles", None)
+# SERIESINSTANCEUID = Property("SeriesInstanceUID")
+# SOPINSTANCEUID = Property("SOPInstanceUID")
+# STUDYINSTANCEUID = Property("StudyInstanceUID")
+
+
+
+
+
 # Suffix _HDR means this  comes from the input file
 ACTIVE_HDR = "active"
 GROUP_HDR = "group"
@@ -56,6 +125,7 @@ PROJECT_HDR = "project"
 SUBJECT_HDR = "subject"
 SESSION_HDR = "session"
 FILE_HDR = "file"
+DICOMMEMBER_HDR = "dicom_member"
 
 MAPPING_COLUMN = FILE_HDR
 
@@ -68,6 +138,7 @@ YMIN_HDR = "y min"
 YMAX_HDR = "y max"
 USERORIGIN_HDR = "user origin"
 VISIBLE_HDR = "visible"
+ROITYPE_HDR = "roi type"
 ROITYPE_HDR = "roi type"
 HIGHLIGHT_HDR = "highlight"
 HEIGHT_HDR = "height"
@@ -485,3 +556,4 @@ class ROI:
         container.update_info(info)
 
         pass
+
