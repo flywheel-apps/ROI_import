@@ -437,6 +437,7 @@ class ROI:
         self.uuid = ""
         self.id = ""
         self.kwargs = None
+        self.valid = True
 
     def generate_imagePath(self):
 
@@ -475,6 +476,10 @@ class ROI:
         self.patientId = kwargs.pop(PATIENTID_KWD)
 
         self.toolType = kwargs.pop(ROITYPE_KWD)
+        if self.toolType.lower() not in [roi.lower() for roi in VALIDROI_KWD]:
+            log.warning(f'INVALID ROI TYPE {self.toolType}')
+            self.valid = False
+
 
         self.imagePath = self.generate_imagePath()
 
@@ -530,6 +535,10 @@ class ROI:
         return output_dict
 
     def append_to_container(self, container):
+
+        if not self.valid:
+            log.warning("Not updating invalid ROI")
+            pass
 
         info = container.info
 
