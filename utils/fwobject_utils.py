@@ -95,6 +95,8 @@ def get_objects_for_processing(fw, container, level, get_files):
     Gets all containers at a certain level (or files of containers at a certain level) that are
     children of a given flywheel container.
 
+    ONLY intended to be used at the session level.
+
     Args:
         fw (flywheel.Client): the flywheel SDK Client
         container (flywheel.ContainerReference): a flywheel container. This will be the "parent"

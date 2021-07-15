@@ -57,6 +57,7 @@ def import_data(fw, df, dry_run=False):
         group_name = datagroup[0]
         project_name = datagroup[1]
         subject_label = datagroup[2]
+
         project = fw.projects.find(f'label={project_name}')[0]
         subject = project.subjects.find(f'label={subject_label}')[0]
 
