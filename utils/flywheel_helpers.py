@@ -1,3 +1,5 @@
+from pathlib import Path
+
 def get_containers_at_level(fw, container, level):
     """Given a starting container, return parent or children containers of that container.
 
@@ -381,94 +383,136 @@ def generate_path_to_container(
     return fw_path
 
 
-def get_dicom_file_sop(self, fw_object, study_uid, series_uid, sop_uid):
-        """ locates the specific dicom file associated with a given ROI.
+## Currently unused but will be needed for future development:
+# 1. currently it only matches file names.  This means that it doesn't actually have "slice" info, which
+# The OHIF viewer stores as SOP instance UID of the particular slice.
+#
+# Future plans are to get the ROI export to export the "slice Number", then have THIS gear search through individual
+# Dicoms to find that slice and copy the UID.  Done this way vs matching SOP uid because sometimes customers will have a
+# copy of a scan that's annotated or something and they want the ROI on that one not the orininal, and in that case
+# SOP wouldn't be the  same but we could still find slice number.  Probably.
 
-        Given an ROI's study UID, series UID, and SOP uid, locate the exact dicom file
-        that the roi corresponds to.
 
-        Args:
-            fw_object (flywheel object): flywheel file or a parent container of a file
-            study_uid (str): the study UID on the ROI
-            series_uid (str): the series UID on the ROI
-            sop_uid (str):  the SOP uid on the ROI
-
-        Returns:
-            dicom_file (str) the name of the dicom file that the ROI is on.
-
-        """
-
-        container_type = fw_object.container_type
-        if container_type == "file":
-            log.debug('working on file')
-            acq = fw_object.parent
-            files = [fw_object]
-            object_name = fw_object.name
-
-        elif container_type == "acquisition":
-            log.debug('working on acquisition')
-            files = fw_object.reload().files
-            object_name = fw_object.label
-
-        elif container_type == "session":
-            # first extract all files from the session.
-            log.debug('working on session')
-            files = []
-            for acq in fw_object.acquisitions():
-                acq = acq.reload()
-                files.extend(acq.files)
-            object_name = fw_object.label
-
-        # Filter by file type, study UID and series UID:
-        files = [f for f in files if f.type == "dicom" and f.info.get("StudyInstanceUID") == study_uid and f.info.get(
-            "SeriesInstanceUID") == series_uid]
-        if len(files) == 0:
-            log.warning(f"No dicom files found in session {object_name} with matching study/series UID "
-                        f" Dicom Classifier must be run before ROI export.")
-            return "NO MATCHES FOUND"
-
-        # If we found more than one dicom matching study/series, something is probably wrong...duplicate upload?
-        if len(files) > 1:
-            log.warning(f"more than 1 file found matching:\nStudyUID: {study_uid}\nSeriesUID: {series_uid}")
-
-        file = files[0]
-        acq = file.parent
-
-        # This reads the raw dicom data stream into a pydicom object
-        #     (https://github.com/pydicom/pydicom/issues/653#issuecomment-449648844)
-        zip_info = acq.get_file_zip_info(file['name'])
-
-        # First pass - we will look for a simple string match in the zipped dicom:
-        match = [p['path'] for p in zip_info['members'] if sop_uid in p['path']]
-
-        if match:
-            dicom_file = match[0]
-            return dicom_file
-
-        # otherwise we have to pull each dicom, read the header, and compare SOP id's.
-        # Do this one zip member by one in the chance that you will find the correct
-        # file early on and you don't have to download everything:
-        for zip_member in zip_info["members"]:
-
-            if zip_member.get('size', 0) == 0:
-                log.debug(f"skipping directory {zip_member.get('path')}")
-                continue
-
-            try:
-                raw_dcm = DicomBytesIO(
-                    acq.read_file_zip_member(file['name'], zip_member.path))
-
-                dcm = pydicom.dcmread(raw_dcm, force=True)
-
-            except Exception as e:
-                log.info(f"Error Loading dicom member '{zip_member.get('path', 'NO PATH PRESENT')}'.  Skipping")
-                continue
-
-            if dcm.SOPInstanceUID == sop_uid:
-                match = zip_member.path
-                return match
-
-        log.warning(
-            f"found matching Study and Series UID but no matching SOP uid:\nSTUDY:{study_uid}\tSERIES:{series_uid}\nSOP:{sop_uid}")
-
-        return "NO SOP MATCH"
+# def match_zipped_dicom_member(acq, file, sop_uid):
+#
+#     zip_info = acq.get_file_zip_info(file['name'])
+#
+#     # First pass - we will look for a simple string match in the zipped dicom:
+#     match = [p['path'] for p in zip_info['members'] if sop_uid in p['path']]
+#
+#     if match:
+#         dicom_file = match[0]
+#         return dicom_file
+#
+#     # otherwise we have to pull each dicom, read the header, and compare SOP id's.
+#     # Do this one zip member by one in the chance that you will find the correct
+#     # file early on and you don't have to download everything:
+#     for zip_member in zip_info["members"]:
+#
+#         if zip_member.get('size', 0) == 0:
+#             log.debug(f"skipping directory {zip_member.get('path')}")
+#             continue
+#
+#         try:
+#             # This reads the raw dicom data stream into a pydicom object
+#             #     (https://github.com/pydicom/pydicom/issues/653#issuecomment-449648844)
+#             raw_dcm = DicomBytesIO(
+#                 acq.read_file_zip_member(file['name'], zip_member.path))
+#
+#             dcm = pydicom.dcmread(raw_dcm, force=True)
+#
+#         except Exception as e:
+#             log.info(f"Error Loading dicom member '{zip_member.get('path', 'NO PATH PRESENT')}'.  Skipping")
+#             continue
+#
+#         if dcm.SOPInstanceUID == sop_uid:
+#             match = zip_member.path
+#             return match
+#
+#     return None
+#
+# def match_unzipped_dicom(file, sop_uid):
+#
+#     try:
+#         raw_dcm = DicomBytesIO(file.read())
+#         dcm = pydicom.dcmread(raw_dcm, force=True)
+#     except Exception as e:
+#         log.info(f"Error Loading dicom member '{zip_member.get('path', 'NO PATH PRESENT')}'.  Skipping")
+#         return None
+#
+#     if dcm.SOPInstanceUID == sop_uid:
+#         return file
+#
+#     return None
+#
+#
+#
+# def get_dicom_file_sop(fw_object, study_uid, series_uid, sop_uid):
+#         """ locates the specific dicom file associated with a given ROI.
+#
+#         Given an ROI's study UID, series UID, and SOP uid, locate the exact dicom file
+#         that the roi corresponds to.
+#
+#         Args:
+#             fw_object (flywheel object): flywheel file or a parent container of a file
+#             study_uid (str): the study UID on the ROI
+#             series_uid (str): the series UID on the ROI
+#             sop_uid (str):  the SOP uid on the ROI
+#
+#         Returns:
+#             dicom_file (str) the name of the dicom file that the ROI is on.
+#
+#         """
+#
+#         container_type = fw_object.container_type
+#         if container_type == "file":
+#             log.debug('working on file')
+#             acq = fw_object.parent
+#             files = [fw_object]
+#             object_name = fw_object.name
+#
+#         elif container_type == "acquisition":
+#             log.debug('working on acquisition')
+#             files = fw_object.reload().files
+#             object_name = fw_object.label
+#
+#         elif container_type == "session":
+#             # first extract all files from the session.
+#             log.debug('working on session')
+#             files = []
+#             for acq in fw_object.acquisitions():
+#                 acq = acq.reload()
+#                 files.extend(acq.files)
+#             object_name = fw_object.label
+#
+#         else:
+#             log.warning(f"container type {container_type} is invalid for ROI importer")
+#             return None
+#
+#         # Filter by file type, study UID and series UID:
+#         files = [f for f in files if f.type == "dicom" and f.info.get("StudyInstanceUID") == study_uid and f.info.get(
+#             "SeriesInstanceUID") == series_uid]
+#         if len(files) == 0:
+#             log.warning(f"No dicom files found in session {object_name} with matching study/series UID "
+#                         f" Dicom Classifier must be run before ROI export.")
+#             return None
+#
+#         # If we found more than one dicom matching study/series, something is probably wrong...duplicate upload?
+#         if len(files) > 1:
+#             log.warning(f"more than 1 file found matching:\nStudyUID: {study_uid}\nSeriesUID: {series_uid}")
+#
+#         file = files[0]
+#         if Path(file) == ".zip":
+#             acq = file.parent
+#             match = match_zipped_dicom_member(acq, file, sop_uid)
+#         else:
+#             match = match_unzipped_dicom(file, sop_uid)
+#
+#
+#         if match is None:
+#             log.warning(
+#                 f"found matching Study and Series UID but no matching SOP uid:\nSTUDY:{study_uid}\tSERIES:{series_uid}\nSOP:{sop_uid}")
+#             return None
+#
+#         else:
+#             return match

@@ -480,7 +480,6 @@ class ROI:
             log.warning(f'INVALID ROI TYPE {self.toolType}')
             self.valid = False
 
-
         self.imagePath = self.generate_imagePath()
 
         # Some important values we'll call out specifically for consistency
