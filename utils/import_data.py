@@ -64,8 +64,8 @@ def import_data(fw, df, dry_run=False):
             continue
         project = project[0]
 
-        subject = project.subjects.find(f'label={subject_label}')[0]
-        if len(subjec) == 0:
+        subject = project.subjects.find(f'label={subject_label}')
+        if len(subject) == 0:
             log.warning(f"No subject {subject_label} found")
             continue
         subject = subject[0]
