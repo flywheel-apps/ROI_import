@@ -122,7 +122,7 @@ def import_data(fw, df, dry_run=False):
                     log.debug(
                         f"No matches found for {object_name}, appending File type '.{series.get('file type')}'"
                     )
-                    object_name += f".{series.get('File Type')}"
+                    object_name += f".{series.get('file type')}"
 
                 log.debug(f"looking for {object_name}")
 
