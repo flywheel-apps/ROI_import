@@ -58,9 +58,17 @@ def import_data(fw, df, dry_run=False):
         project_name = datagroup[1]
         subject_label = datagroup[2]
 
-        project = fw.projects.find(f'label={project_name}')[0]
-        subject = project.subjects.find(f'label={subject_label}')[0]
+        project = fw.projects.find(f'label={project_name},group={group_name}')
+        if len(project) == 0:
+            log.warning(f"No project {project_name} found")
+            continue
+        project = project[0]
 
+        subject = project.subjects.find(f'label={subject_label}')[0]
+        if len(subjec) == 0:
+            log.warning(f"No subject {subject_label} found")
+            continue
+        subject = subject[0]
         for index in indexs:
             series = df.loc[index]
 
