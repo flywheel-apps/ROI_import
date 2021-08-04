@@ -1,6 +1,5 @@
 import logging
 
-from utils import flywheel_helpers as fh
 import utils.ROI_Template as ROI
 import utils.fwobject_utils as fu
 

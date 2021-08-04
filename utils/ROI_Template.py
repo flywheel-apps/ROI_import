@@ -225,6 +225,8 @@ FLYWHEELORIGIN_KWD = "flywheelOrigin"
 LESIONNAMINGNUMBER_KWD = "lesionNamingNumber"
 MEASUREMENTNUMBER_KWD = "measurementNumber"
 
+IMPORTMETHOD_KWD = "ImportMethod"
+
 
 MEASUREMENTS_KWD = "measurements"
 
@@ -531,6 +533,7 @@ class ROI:
             USERID_KWD: self.userId,
             UUID_KWD: self.uuid,
             ID_KWD: self.id,
+            IMPORTMETHOD_KWD: "import-rois"
         }
 
         return output_dict
@@ -558,7 +561,7 @@ class ROI:
             info[self.namespace][MEASUREMENTS_KWD][self.toolType] = [clean_dict]
         else:
 
-            if found_duplicate_roi(info[self.namespace][MEASUREMENTS_KWD][self.toolType]):
+            if self.found_duplicate_roi(info[self.namespace][MEASUREMENTS_KWD][self.toolType]):
                 log.warning('Will not add duplicate')
             else:
                 log.info(f"Appending to namespace {self.toolType}")

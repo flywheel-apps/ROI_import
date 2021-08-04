@@ -3,7 +3,6 @@ import numpy as np
 
 import logging
 
-from utils import flywheel_helpers as fh
 from utils import ROI_Template as ROI
 
 log = logging.getLogger(__name__)

@@ -114,6 +114,10 @@ def import_data(fw, df, group, project, dry_run=False):
                 # Loop through the sessions we find (hopefully only one)
                 for session in sessions:
 
+                    # Get a list of all files attached to the acquisitions in the session identified
+                    # by the object location found above
+                    objects_for_processing = fu.get_session_files(fw, session)
+
                     # With each session, we must now search for each specific file
                     for index in indexs:
                         series = session_df.loc[index]
@@ -121,11 +125,8 @@ def import_data(fw, df, group, project, dry_run=False):
 
                         lookup_string = f"{group_name}/{project_name}/{subject_label}/{session_label}/{object_name}"
 
-                        # Get a list of all files attached to the acquisitions in the session identified
-                        # by the object location found above
-                        objects_for_processing = fu.get_session_files(fw, session)
                         matching_files = fu.filter_matches(objects_for_processing, object_name, series.get('file type'))
-                        matching_files = [Match(file,group_name,project_name,subject_label,session_label) for file in matching_files]
+                        matching_files = [Match(file, group_name, project_name, subject_label, session_label) for file in matching_files]
 
                         if index in initial_matching:
                             initial_matching[index].extend(matching_files)
