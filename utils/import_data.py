@@ -84,6 +84,9 @@ def import_data(fw, df, group, project, dry_run=False):
     group_name = group.id
     project_name = project.label
 
+    ############################################################################
+    # STEP 1: Loop through subject/session combos and aggregate file matches  #
+    ############################################################################
     # We will first loop through and find any and all matches for each subject/session combination.
     # Group by subject/session combos, to minimize loading.
     unique_subjects = df[ROI.SUBJECT_HDR].unique()
@@ -129,6 +132,10 @@ def import_data(fw, df, group, project, dry_run=False):
                         else:
                             initial_matching[index] = matching_files
 
+    ############################################################################
+    # STEP 2: Loop through aggregated matches and ensure there is only one     #
+    # Match per row                                                            #
+    ############################################################################
 
     # Now that we have assembled all the possible matches for every index in the dataframe, go through and make sure
     # There aren't duplicates.
