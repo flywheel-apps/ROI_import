@@ -89,6 +89,19 @@ def get_roi_number(session):
     return number_dict
 
 
+def get_session_files(fw, session):
+    for acq in session.acquisitions.iter():
+        acq = acq.reload()
+        for file_ in acq.files:
+            yield file_
+
+def filter_matches(objects, name, file_type):
+    name_w_file_type = name + f".{file_type}"
+    for obj in objects:
+        if obj.get("name") == name or obj.get("name") == name_w_file_type:
+            yield obj
+
+
 def get_objects_for_processing(fw, container, level, get_files):
     """Returns flywheel child containers of files.
 

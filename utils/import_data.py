@@ -2,10 +2,11 @@ import collections.abc
 import numpy as np
 import pprint
 from flywheel.rest import ApiException
+import flywheel
+from dataclasses import dataclass
 
 import logging
 
-from utils import flywheel_helpers as fh
 import utils.fwobject_utils as fu
 import utils.csv_utils as cu
 import utils.ROI_Template as ROI
@@ -18,14 +19,42 @@ import utils.ROI_Template as ROI
 
 log = logging.getLogger("__main__")
 
+@dataclass
+class Match:
+    file: flywheel.FileEntry = None
+    group_label: str = ""
+    project_label: str = ""
+    subject_label: str = ""
+    session_label: str = ""
+    acquisition_label: str = ""
 
-def import_data(fw, df, dry_run=False):
+
+    def get_acquisition(self, fw):
+        if self.acquisition_label is "" and self.file.parents.acquisition is not None:
+            acquisition = fw.get_acquisition(self.file.parents.acquisition)
+            append = f"/{acquisition.label}"
+        else:
+            append = ""
+
+        self.acquisition_label = append
+
+
+    def path(self):
+        return f"{self.group_label}/{self.project_label}/{self.subject_label}/{self.session_label}/{self.acquisition_label}/{self.file.name}"
+
+
+
+
+
+def import_data(fw, df, group, project, dry_run=False):
     """Imports a pandas DataFrame into flywheel as ROI's
 
     Args:
         fw (flywheel.Client): the flywheel Client
         df (pandas.DataFrame): The pandas dataframe generated from the input CSV file,
             with the columns described in "Sample.csv"
+        group (Flywheel.Group): The group to import the data to.
+        project (Flyhweel.Project): The project to import the data to.
         dry_run (boolean): Indicates if the data is actually imported (False) or a log
             is made of what would be changed, but no changes are actually made (True)
 
@@ -52,180 +81,149 @@ def import_data(fw, df, dry_run=False):
 
     success_counter = 0
 
-    unique_proj_sub = df.groupby([ROI.GROUP_HDR, ROI.PROJECT_HDR, ROI.SUBJECT_HDR])
-    for datagroup, indexs in unique_proj_sub.groups.items():
-        group_name = datagroup[0]
-        project_name = datagroup[1]
-        subject_label = datagroup[2]
+    group_name = group.id
+    project_name = project.label
 
-        project = fw.projects.find(f'label={project_name},group={group_name}')
-        if len(project) == 0:
-            log.warning(f"No project {project_name} found")
-            continue
-        project = project[0]
+    # Group by subject/session combos, to minimize loading.
+    unique_subjects = df[ROI.SUBJECT_HDR].unique()
+    # We are assuming that the group/project we're running in is the one we want to upload to.
+    initial_matching = {}
+    # First we will descend into the first unique subject label
+    for subject_label in unique_subjects:
+        # There may be multiple subjects, but they will all have the same label
+        subjects = project.subjects.iter_find(f'label={subject_label}')
 
-        subject = project.subjects.find(f'label={subject_label}')
-        if len(subject) == 0:
-            log.warning(f"No subject {subject_label} found")
-            continue
-        subject = subject[0]
-        for index in indexs:
-            series = df.loc[index]
+        # Now we will generate a dataframe group for the unique sessions present in this subject(s)
+        session_df = df[df[ROI.SUBJECT_HDR] == subject_label]
+        session_groups = session_df.groupby([ROI.SESSION_HDR])
 
-            (
-                object_name,
-                _,
-                _,
-                _,
-                session_label,
-            ) = cu.get_fw_path(series)
+        # Now we will loop through any subjects we found originally
+        for subject in subjects:
+
+            # We will loop through our unique session groups
+            for session_label, indexs in session_groups.groups.items():
+                # And search for sessions with that label on that subject.
+                sessions = subject.sessions.iter_find(f'label={session_label}')
+
+                # We may find multiple, however they will all have the same subject/session label
+                # Loop through the sessions we find (hopefully only one)
+                for session in sessions:
+
+                    # With each session, we must now search for each specific file
+                    for index in indexs:
+                        series = session_df.loc[index]
+                        object_name = series.get(ROI.MAPPING_COLUMN)
+
+                        lookup_string = f"{group_name}/{project_name}/{subject_label}/{session_label}/{object_name}"
+
+                        # Get a list of all files attached to the acquisitions in the session identified
+                        # by the object location found above
+                        objects_for_processing = fu.get_session_files(fw, session)
+                        matching_files = fu.filter_matches(objects_for_processing, object_name, series.get('file type'))
+                        matching_files = [Match(file,group_name,project_name,subject_label,session_label) for file in matching_files]
+
+                        if index in initial_matching:
+                            initial_matching[index].extend(matching_files)
+                        else:
+                            initial_matching[index] = matching_files
 
 
+    # Now that we have assembled all the possible matches for every index in the dataframe, go through and make sure
+    # There aren't duplicates.
+    for index in df.index:
+        series = df.loc[index]
 
-            lookup_string = f"{group_name}/{project_name}/{subject_label}/{session_label}/{object_name}"
-
-
-
-            try:
-                ses = subject.sessions.find(f'label={session_label}')
-                if len(ses) == 0:
-                    log.error(
-                        f"No session found for: {lookup_string}\n please double check.  Skipping "
-                    )
-                    continue
-                ses=ses[0]
-                ses=ses.reload()
-
-                # This is just creating a human readable variable to pass "True" value to the next
-                # function.  This makes it easier to understand what it's doing.
-                get_files = True
-
-                # Get a list of all files attached to the acquisitions in the session identified
-                # by the object location found above
-                objects_for_processing = fu.get_objects_for_processing(
-                    fw, ses, "acquisition", get_files
+        try:
+            if index not in initial_matching:
+                log.warning(f'0 matches found for index {index}')
+                log.info("\n--------------------------------------------------\n"
+                "STATUS: Failed\n"
+                "==================================================\n"
                 )
+                continue
 
+            matches = initial_matching[index]
+            if len(matches) != 1:
+
+                log.warning(f'{len(matches)} matches found for index {index}, exactly 1 required')
+                log.info("\n--------------------------------------------------\n"
+                    "STATUS: Failed\n"
+                    "==================================================\n"
+                )
+                continue
+
+            match = matches[0]
+            # Generate a flywheel path to this file.  A little redundant since we
+            # already have group/project/subject/session, but this will also find
+            # acquisition and file.
+            match.get_acquisition(fw)
+            # Make this a data property
+            address = match.path()
+
+            # We write ROI info to the parent Session metadata, so get the containing session
+            # of the matching file.
+            parent = match.file.parent
+            if parent.container_type == "session":
+                ses = parent.reload()
+            else:
+                ses = fw.get_session(parent.parents.session)
+
+            # Get an ROI object from the row using required and optional columns.
+            roi = cu.get_roi_from_row(series, match.file, ses)
+
+            # If this gear is a dry run, we'll only log, not actually upload
+            if dry_run:
+                log.info(f"Would modify info on {address}")
+                df.at[index, "Gear_Status"] = "Dry-Run Success"
+                df.at[index, "Gear_FW_Location"] = address
                 log.info(
-                    f"\n==================================================\n"
-                    f"Setting Metadata For {object_name}\n"
-                    f"--------------------------------------------------\n"
+                    "\n--------------------------------------------------\n"
+                    "DRYRUN STATUS: Success\n"
+                    "==================================================\n"
                 )
-                log.info(series)
+                success_counter += 1
 
-                # Find any files that match the name of the file specified in this row of the dataframe
-                matches = [
-                    m for m in objects_for_processing if m.get("name") == object_name
-                ]
+            # Otherwise make the ROI
+            else:
 
-                if len(matches) == 0:
-                    log.debug(
-                        f"No matches found for {object_name}, appending File type '.{series.get('file type')}'"
-                    )
-                    object_name += f".{series.get('file type')}"
-
-                log.debug(f"looking for {object_name}")
-
-                matches = [
-                    m for m in objects_for_processing if m.get("name") == object_name
-                ]
-
-                # Names must be unique, so warn if there are multiple matches.
-                if len(matches) > 1:
-                    log.warning(
-                        f"Multiple matches for for object name '{object_name}'. "
-                        f"please get better at specifying flywheel objects."
-                    )
-                    log.info(
-                        "\n--------------------------------------------------\n"
-                        "STATUS: Failed\n"
-                        "==================================================\n"
-                    )
-                    continue
-
-                # Names must exist, so warn if nothing maches
-                elif len(matches) == 0:
-                    log.warning(f"No match for object name '{object_name}'.")
-                    log.info(
-                        "\n--------------------------------------------------\n"
-                        "STATUS: Failed\n"
-                        "==================================================\n"
-                    )
-                    continue
-
-                # Take the (hopefully) one match
-                match = matches[0]
-
-                # Generate a flywheel path to this file.  A little redundant since we
-                # already have group/project/subject/session, but this will also find
-                # acquisition and file.
-                address = fh.generate_path_to_container(fw, match)
-
-                # We write ROI info to the parent Session metadata, so get the containing session
-                # of the matching file.
-                parent = match.parent
-                if parent.container_type == "session":
-                    ses = parent.reload()
-                else:
-                    ses = fw.get_session(parent.parents.session)
-
-                # Get an ROI object from the row using required and optional columns.
-                roi = cu.get_roi_from_row(series, match, ses)
-
-                # If this gear is a dry run, we'll only log, not actually upload
-                if dry_run:
-                    log.info(f"Would modify info on {address}")
-                    df.at[index, "Gear_Status"] = "Dry-Run Success"
-                    df.at[index, "Gear_FW_Location"] = address
-                    log.info(
-                        "\n--------------------------------------------------\n"
-                        "DRYRUN STATUS: Success\n"
-                        "==================================================\n"
-                    )
+                log.info(f"Creating ROI")
+                log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
+                try:
+                    # add the ROI to the container.
+                    roi.append_to_container(ses)
                     success_counter += 1
+                    df.at[index, "Gear_Status"] = "Success"
+                    df.at[index, "Gear_FW_Location"] = address
 
-                # Otherwise make the ROI
-                else:
+                    log.info(
+                        "\n--------------------------------------------------\n"
+                        "STATUS: Success\n"
+                        "==================================================\n"
+                    )
+                except Exception as e:
+                    log.warning("Error uploading metadata")
+                    log.exception(e)
 
-                    log.info(f"Creating ROI")
-                    log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
-                    try:
-                        # add the ROI to the container.
-                        roi.append_to_container(ses)
-                        success_counter += 1
-                        df.at[index, "Gear_Status"] = "Success"
-                        df.at[index, "Gear_FW_Location"] = address
+        except Exception as e:
+            log.warning(
+                f"\n--------------------------------------------------\n"
+                f"STATUS: Failed\n"
+                f"row {index} unable to process for reason: {e}"
+                f"==================================================\n"
+            )
 
-                        log.info(
-                            "\n--------------------------------------------------\n"
-                            "STATUS: Success\n"
-                            "==================================================\n"
-                        )
-                    except Exception as e:
-                        log.warning("Error uploading metadata")
-                        log.exception(e)
+            log.exception(e)
 
-            except Exception as e:
+        log.info(
+            f"\n\n"
+            f"===============================================================================\n"
+            f"Final Report: {success_counter}/{nrows} objects updated successfully\n"
+            f"{success_counter/nrows*100}%\n"
+            f"See output report file for more details\n"
+            f"===============================================================================\n"
+        )
 
-                log.warning(
-                    f"\n--------------------------------------------------\n"
-                    f"STATUS: Failed\n"
-                    f"row {index} unable to process for reason: {e}"
-                    f"==================================================\n"
-                )
-
-                log.exception(e)
-
-    log.info(
-        f"\n\n"
-        f"===============================================================================\n"
-        f"Final Report: {success_counter}/{nrows} objects updated successfully\n"
-        f"{success_counter/nrows*100}%\n"
-        f"See output report file for more details\n"
-        f"===============================================================================\n"
-    )
-
-    return df
+        return df
 
 
 # https://gist.github.com/angstwad/bf22d1822c38a92ec0a9

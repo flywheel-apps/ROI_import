@@ -1,6 +1,8 @@
 import flywheel
 import logging
+import math
 import pprint
+
 
 from utils import fwobject_utils as fu
 
@@ -267,7 +269,7 @@ class BoundingBox:
 
 
 class Coords:
-    def __init__(self, x=0, y=0, active=False, highlight=None):
+    def __init__(self, x=0.0, y=0.0, active=False, highlight=None):
         self.x = x
         self.y = y
         self.active = active
@@ -556,8 +558,11 @@ class ROI:
             info[self.namespace][MEASUREMENTS_KWD][self.toolType] = [clean_dict]
         else:
 
-            log.info(f"Appending to namespace {self.toolType}")
-            info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
+            if found_duplicate_roi(info[self.namespace][MEASUREMENTS_KWD][self.toolType]):
+                log.warning('Will not add duplicate')
+            else:
+                log.info(f"Appending to namespace {self.toolType}")
+                info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
 
         log.info("updating container...")
 
@@ -565,3 +570,38 @@ class ROI:
 
         pass
 
+
+    def found_duplicate_roi(self, existing_rois):
+
+        # We truncate to a length of 4, because sometimes an ROI will have a very long floating point coordinate
+        # Value, but when the user loads this into excel, it truncates it to like 6 or 8 decimal places, so we assume
+        # that 4 decimal places is small enough to be unique and still catch duplicates even with excell truncating.
+        n = 4
+        my_x1 = self.handle.start.x
+        my_y1 = self.handle.start.y
+        my_x2 = self.handle.end.x
+        my_y2 = self.handle.end.y
+
+        my_coords = [my_x1, my_y1, my_x2, my_y2]
+        my_coords = [truncate(c, n) for c in my_coords]
+
+        for roi in existing_rois:
+            roi_x1 = roi.get('handles', {}).get('start', {}).get('x', 0.0)
+            roi_y1 = roi.get('handles', {}).get('start', {}).get('y', 0.0)
+            roi_x2 = roi.get('handles', {}).get('end', {}).get('x', 0.0)
+            roi_y2 = roi.get('handles', {}).get('end', {}).get('y', 0.0)
+
+            roi_coords = [roi_x1, roi_x2, roi_y1, roi_y2]
+            roi_coords = [truncate(c, n) for c in roi_coords]
+
+            duplicated = [mc in roi_coords for mc in my_coords]
+
+            if all(duplicated):
+                log.warning('Found duplicate ROI (coordinates match out to 4 decimal places)')
+                return True
+
+        return False
+
+
+def truncate(f, n):
+    return math.floor(f * 10 ** n) / 10 ** n

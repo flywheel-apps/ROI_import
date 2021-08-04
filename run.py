@@ -11,7 +11,7 @@ from utils import load_data as ld, import_data as id, csv_utils as cu
 log = logging.getLogger()
 
 
-def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
+def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, destination):
     """Imports ROI's from a CSV file into Flywheel
 
     This function initializes a flywheel Client, loads a CSV file, ingests that data
@@ -26,7 +26,8 @@ def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
         dry_run (boolean): Sets if the gear is going to perform a dry-run (will not
             rite data)
         output_dir (Pathlike): The directory to save gear outputs to
-        log (logging.Logger): A logger to be used in the rest of the gear.
+        group (Flywheel.Group): The group that the gear is being run in.
+        project (Flyhweel.Project): The project that the gear is being run in.
 
     Returns:
         exit_status (integer): indicates if the script was successful (0) or encountered
@@ -39,11 +40,17 @@ def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log):
         # Initialize the flywheel client using an API-ket
         fw = flywheel.Client(api_key)
 
+        destination = fw.get(destination['id'])
+        group = fw.get_group(destination.parents.group)
+        project = fw.get_project(destination.parents.project)
+
+        # We now assume that this data is being uploaded to the group/project that the gear is being run on.
+
         # import the csv file as a dataframe
         df = ld.load_text_dataframe(csv_file, first_row, delimiter)
 
         # Format the data for ROI's from the data headers and upload to flywheel
-        df = id.import_data(fw, df, dry_run)
+        df = id.import_data(fw, df, group, project, dry_run)
 
         # Save a report
         cu.save_df_to_csv(df, output_dir)
@@ -129,14 +136,17 @@ def process_gear_inputs(context):
         log.error(f"invalid destination {destination_level}")
         raise Exception("Invalid gear destination")
 
+    # Get the destination group/project
+    destination = context.destination
     output_dir = context.output_dir
+
 
     # TODO: Possibly not needed
     # destination_id = context.destination.get("id")
     # dest_container = fw.get(destination_id)
     # project = dest_container.parents.get("project")
 
-    return csv_file, first_row, delimiter, api_key, dry_run, output_dir, log
+    return csv_file, first_row, delimiter, api_key, dry_run, output_dir, destination
 
 
 if __name__ == "__main__":
@@ -148,8 +158,8 @@ if __name__ == "__main__":
         api_key,
         dry_run,
         output_dir,
-        log,
+        destination
     ) = process_gear_inputs(gt.GearToolkitContext())
 
-    result = main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, log)
+    result = main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, destination)
     sys.exit(result)
