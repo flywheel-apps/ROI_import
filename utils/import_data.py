@@ -84,6 +84,7 @@ def import_data(fw, df, group, project, dry_run=False):
     group_name = group.id
     project_name = project.label
 
+    # We will first loop through and find any and all matches for each subject/session combination.
     # Group by subject/session combos, to minimize loading.
     unique_subjects = df[ROI.SUBJECT_HDR].unique()
     # We are assuming that the group/project we're running in is the one we want to upload to.
@@ -105,7 +106,8 @@ def import_data(fw, df, group, project, dry_run=False):
                 # And search for sessions with that label on that subject.
                 sessions = subject.sessions.iter_find(f'label={session_label}')
 
-                # We may find multiple, however they will all have the same subject/session label
+                # We may find multiple - it is possible for 2 subjects to have the same label, each with a session with
+                #  the same label.
                 # Loop through the sessions we find (hopefully only one)
                 for session in sessions:
 
