@@ -141,7 +141,6 @@ YMAX_HDR = "y max"
 USERORIGIN_HDR = "user origin"
 VISIBLE_HDR = "visible"
 ROITYPE_HDR = "roi type"
-ROITYPE_HDR = "roi type"
 HIGHLIGHT_HDR = "highlight"
 HEIGHT_HDR = "height"
 LEFT_HDR = "left"
@@ -156,6 +155,7 @@ HASBOUNDINGBOX_HDR = "hasBoundingBox"
 HASMOVED_HDR = "hasMoved"
 MOVESINDEPENDENTLY_HDR = "movesIndependently"
 INITIALROTATION_HDR = "initialRotation"
+
 
 AREA_HDR = "area"
 COUNT_HDR = "count"
@@ -542,7 +542,7 @@ class ROI:
 
         if not self.valid:
             log.warning("Not updating invalid ROI")
-            pass
+            return False
 
         info = container.info
 
@@ -563,6 +563,7 @@ class ROI:
 
             if self.found_duplicate_roi(info[self.namespace][MEASUREMENTS_KWD][self.toolType]):
                 log.warning('Will not add duplicate')
+                return False
             else:
                 log.info(f"Appending to namespace {self.toolType}")
                 info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
@@ -571,7 +572,7 @@ class ROI:
 
         container.update_info(info)
 
-        pass
+        return True
 
 
     def found_duplicate_roi(self, existing_rois):

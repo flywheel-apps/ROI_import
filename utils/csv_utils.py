@@ -143,7 +143,11 @@ def get_roi_from_row(series, file, session):
 
     roi_dict = {ROI.HANDLE_KWD: handle}
     roi_dict.update(id_dict)
-    roi_dict[ROI.ROITYPE_KWD] = panda_pop(series, ROI.ROITYPE_HDR)
+
+    if ROI.ROITYPE_HDR in series or "ROI type" in series:
+        roi_dict[ROI.ROITYPE_KWD] = panda_pop(series, ROI.ROITYPE_HDR)
+    else:
+        log.warning('Must Specify ROI type with the key "roi type"')
 
     # This adds all remaining keys to the roi dict.
     roi_dict.update(series)

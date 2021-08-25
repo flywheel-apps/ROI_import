@@ -8,6 +8,7 @@ def load_excel_dataframe(excel_path, firstrow_spec, sheets_spec=0):
     # This function is not used in this version of the gear, but will be used in the future.
     # First iteration only supports single sheet import, but sheet can be specified.
     df = pd.read_excel(excel_path, header=firstrow_spec - 1, sheet_name=sheets_spec)
+    df.columns = df.columns.str.lower()
     df = df.where(pd.notnull(df), None)
     return df
 
@@ -26,6 +27,7 @@ def load_text_dataframe(df_path, firstrow_spec, delimiter_spec):
 
     """
     df = pd.read_table(df_path, delimiter=delimiter_spec, header=firstrow_spec - 1)
+    # df.columns = df.columns.str.lower()
     df = df.where(pd.notnull(df), None)
 
     return df

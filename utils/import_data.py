@@ -145,7 +145,7 @@ def import_data(fw, df, group, project, dry_run=False):
 
         try:
             if index not in initial_matching:
-                log.warning(f'0 matches found for index {index}')
+                log.warning(f'0 matches found for row {index}')
                 log.info("\n--------------------------------------------------\n"
                 "STATUS: Failed\n"
                 "==================================================\n"
@@ -200,19 +200,32 @@ def import_data(fw, df, group, project, dry_run=False):
                 log.debug(f"{pprint.pprint(roi.to_dict(),indent=2)}")
                 try:
                     # add the ROI to the container.
-                    roi.append_to_container(ses)
-                    success_counter += 1
-                    df.at[index, "Gear_Status"] = "Success"
-                    df.at[index, "Gear_FW_Location"] = address
+                    success = roi.append_to_container(ses)
+                    if success:
+                        success_counter += 1
+                        df.at[index, "Gear_Status"] = "Success"
+                        df.at[index, "Gear_FW_Location"] = address
 
-                    log.info(
-                        "\n--------------------------------------------------\n"
-                        "STATUS: Success\n"
-                        "==================================================\n"
-                    )
+                        log.info(
+                            "\n--------------------------------------------------\n"
+                            "STATUS: Success\n"
+                            "==================================================\n"
+                        )
+                    else:
+                        df.at[index, "Gear_Status"] = "Failed"
+                        df.at[index, "Gear_FW_Location"] = address
+
+                        log.info(
+                            "\n--------------------------------------------------\n"
+                            "STATUS: Failed\n"
+                            "==================================================\n"
+                        )
+                        continue
+
                 except Exception as e:
                     log.warning("Error uploading metadata")
                     log.exception(e)
+                    continue
 
         except Exception as e:
             log.warning(
@@ -223,17 +236,18 @@ def import_data(fw, df, group, project, dry_run=False):
             )
 
             log.exception(e)
+            continue
 
-        log.info(
-            f"\n\n"
-            f"===============================================================================\n"
-            f"Final Report: {success_counter}/{nrows} objects updated successfully\n"
-            f"{success_counter/nrows*100}%\n"
-            f"See output report file for more details\n"
-            f"===============================================================================\n"
-        )
+    log.info(
+        f"\n\n"
+        f"===============================================================================\n"
+        f"Final Report: {success_counter}/{nrows} objects updated successfully\n"
+        f"{success_counter/nrows*100}%\n"
+        f"See output report file for more details\n"
+        f"===============================================================================\n"
+    )
 
-        return df
+    return df
 
 
 # https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
