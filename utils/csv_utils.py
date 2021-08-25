@@ -1,6 +1,5 @@
 import logging
 
-from utils import flywheel_helpers as fh
 import utils.ROI_Template as ROI
 import utils.fwobject_utils as fu
 
@@ -119,7 +118,7 @@ def get_roi_from_row(series, file, session):
 
     Args:
         series (pandas.Series): a row from a dataframe describing an ROI
-        file (flywheel.File): a flywheel file to attach the ROI to
+        file (flywheel.FileEntry): a flywheel file to attach the ROI to
         session (flywheel.Session): the parent session of the file
 
     Returns:
@@ -131,6 +130,12 @@ def get_roi_from_row(series, file, session):
     handle = get_handle_from_row(series)
     stats = get_stats_from_row(series)
 
+    # This currently does not support putting ROI's on a specific slice number (intended for 2D images)
+    # That would require either the SOPInstanceUID from the original image or the slice number
+    # The problem with the SOPInstanceUID is that sometimes those UID's are hashed when a file is exported to another
+    # project using deid-export, so it wouldn't work trying to match them.
+    # The problem with slice number is that we'd have to load each and every dicom slice, read the metadata, and try
+    # To match the slice number.
     id_dict = fu.get_uids_from_filename(file)
 
     for k in id_dict.keys():

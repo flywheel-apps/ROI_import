@@ -1,6 +1,8 @@
 import flywheel
 import logging
+import math
 import pprint
+
 
 from utils import fwobject_utils as fu
 
@@ -49,6 +51,75 @@ log = logging.getLogger("ROI")
 # I think yes...so it's clear what keywords are supported by the template and which
 # aren't
 
+
+
+# @dataclass
+# class Property:
+#     roi: str = None
+#     csv: str = ""
+#     value: Any = None
+#
+#     def __post_init__(self):
+#         # If only a single value is passed in, we assume the key is the same for both the ROI and the CSV.
+#         if isinstance(self.roi, str) and self.csv == "":
+#             self.csv = self.roi
+#
+#
+#
+#
+# # These are for identifying columns in the CSV, they only exist in the CSV:
+# GROUP = Property("group")
+# PROJECT = Project("project")
+# SUBJECT = Property("subject")
+# SESSION = Property("session")
+# FILE = Property("file")
+# FILETYPE = Property("file type")
+#
+# MAPPING_COLUMN = FILE.csv
+#
+# # These properties are actually used in both (or rather are actual ROI properties to be coppied)
+# ACTIVE = Property("active")
+# LOCATION = Property("location")
+# DESCRIPTION = Property("description")
+# XMIN = Property('x',"x min")
+# XMAX = Property("x","x max")
+# YMIN = Property("y","y min")
+# YMAX = Property("y","y max")
+# USERORIGIN = Property("user origin")
+# VISIBLE = Property("visible")
+# ROITYPE = Property("toolType","roi type")
+# HIGHLIGHT = Property("highlight")
+# HEIGHT = Property("height")
+# LEFT = Property("left")
+# RIGHT = Property("right")
+# TOP = Property("top")
+# WIDTH = Property("width")
+#
+#
+# ALLOWEDOUTSIDE = Property("allowedOutsideImage")
+# DRAWNINDEPENDENTLY = Property("drawnIndependently")
+# HASBOUNDINGBOX = Property("hasBoundingBox")
+# HASMOVED = Property("hasMoved")
+# MOVESINDEPENDENTLY = Property("movesIndependently")
+# INITIALROTATION = Property("initialRotation")
+#
+# AREA = Property("area")
+# COUNT = Property("count")
+# MAX = Property("max")
+# MEAN = Property("mean")
+# MIN = Property("min")
+# STDDEV = Property("stdDev")
+# VARIANCE = Property("variance")
+#
+# HANDLE = Property("handles", None)
+# SERIESINSTANCEUID = Property("SeriesInstanceUID")
+# SOPINSTANCEUID = Property("SOPInstanceUID")
+# STUDYINSTANCEUID = Property("StudyInstanceUID")
+
+
+
+
+
 # Suffix _HDR means this  comes from the input file
 ACTIVE_HDR = "active"
 GROUP_HDR = "group"
@@ -56,6 +127,7 @@ PROJECT_HDR = "project"
 SUBJECT_HDR = "subject"
 SESSION_HDR = "session"
 FILE_HDR = "file"
+DICOMMEMBER_HDR = "dicom_member"
 
 MAPPING_COLUMN = FILE_HDR
 
@@ -68,6 +140,7 @@ YMIN_HDR = "y min"
 YMAX_HDR = "y max"
 USERORIGIN_HDR = "user origin"
 VISIBLE_HDR = "visible"
+ROITYPE_HDR = "roi type"
 ROITYPE_HDR = "roi type"
 HIGHLIGHT_HDR = "highlight"
 HEIGHT_HDR = "height"
@@ -152,6 +225,8 @@ FLYWHEELORIGIN_KWD = "flywheelOrigin"
 LESIONNAMINGNUMBER_KWD = "lesionNamingNumber"
 MEASUREMENTNUMBER_KWD = "measurementNumber"
 
+IMPORTMETHOD_KWD = "ImportMethod"
+
 
 MEASUREMENTS_KWD = "measurements"
 
@@ -196,7 +271,7 @@ class BoundingBox:
 
 
 class Coords:
-    def __init__(self, x=0, y=0, active=False, highlight=None):
+    def __init__(self, x=0.0, y=0.0, active=False, highlight=None):
         self.x = x
         self.y = y
         self.active = active
@@ -366,6 +441,7 @@ class ROI:
         self.uuid = ""
         self.id = ""
         self.kwargs = None
+        self.valid = True
 
     def generate_imagePath(self):
 
@@ -404,6 +480,9 @@ class ROI:
         self.patientId = kwargs.pop(PATIENTID_KWD)
 
         self.toolType = kwargs.pop(ROITYPE_KWD)
+        if self.toolType.lower() not in [roi.lower() for roi in VALIDROI_KWD]:
+            log.warning(f'INVALID ROI TYPE {self.toolType}')
+            self.valid = False
 
         self.imagePath = self.generate_imagePath()
 
@@ -454,11 +533,16 @@ class ROI:
             USERID_KWD: self.userId,
             UUID_KWD: self.uuid,
             ID_KWD: self.id,
+            IMPORTMETHOD_KWD: "import-rois"
         }
 
         return output_dict
 
     def append_to_container(self, container):
+
+        if not self.valid:
+            log.warning("Not updating invalid ROI")
+            pass
 
         info = container.info
 
@@ -477,11 +561,50 @@ class ROI:
             info[self.namespace][MEASUREMENTS_KWD][self.toolType] = [clean_dict]
         else:
 
-            log.info(f"Appending to namespace {self.toolType}")
-            info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
+            if self.found_duplicate_roi(info[self.namespace][MEASUREMENTS_KWD][self.toolType]):
+                log.warning('Will not add duplicate')
+            else:
+                log.info(f"Appending to namespace {self.toolType}")
+                info[self.namespace][MEASUREMENTS_KWD][self.toolType].append(clean_dict)
 
         log.info("updating container...")
 
         container.update_info(info)
 
         pass
+
+
+    def found_duplicate_roi(self, existing_rois):
+
+        # We truncate to a length of 4, because sometimes an ROI will have a very long floating point coordinate
+        # Value, but when the user loads this into excel, it truncates it to like 6 or 8 decimal places, so we assume
+        # that 4 decimal places is small enough to be unique and still catch duplicates even with excell truncating.
+        n = 4
+        my_x1 = self.handle.start.x
+        my_y1 = self.handle.start.y
+        my_x2 = self.handle.end.x
+        my_y2 = self.handle.end.y
+
+        my_coords = [my_x1, my_y1, my_x2, my_y2]
+        my_coords = [truncate(c, n) for c in my_coords]
+
+        for roi in existing_rois:
+            roi_x1 = roi.get('handles', {}).get('start', {}).get('x', 0.0)
+            roi_y1 = roi.get('handles', {}).get('start', {}).get('y', 0.0)
+            roi_x2 = roi.get('handles', {}).get('end', {}).get('x', 0.0)
+            roi_y2 = roi.get('handles', {}).get('end', {}).get('y', 0.0)
+
+            roi_coords = [roi_x1, roi_x2, roi_y1, roi_y2]
+            roi_coords = [truncate(c, n) for c in roi_coords]
+
+            duplicated = [mc in roi_coords for mc in my_coords]
+
+            if all(duplicated):
+                log.warning('Found duplicate ROI (coordinates match out to 4 decimal places)')
+                return True
+
+        return False
+
+
+def truncate(f, n):
+    return math.floor(f * 10 ** n) / 10 ** n

@@ -3,7 +3,6 @@ import numpy as np
 
 import logging
 
-from utils import flywheel_helpers as fh
 from utils import ROI_Template as ROI
 
 log = logging.getLogger(__name__)
@@ -89,69 +88,17 @@ def get_roi_number(session):
     return number_dict
 
 
-def get_objects_for_processing(fw, container, level, get_files):
-    """Returns flywheel child containers of files.
+def get_session_files(fw, session):
+    for acq in session.acquisitions.iter():
+        acq = acq.reload()
+        for file_ in acq.files:
+            yield file_
 
-    Gets all containers at a certain level (or files of containers at a certain level) that are
-    children of a given flywheel container.
-
-    Args:
-        fw (flywheel.Client): the flywheel SDK Client
-        container (flywheel.ContainerReference): a flywheel container. This will be the "parent"
-            container that child containers or files at a given level will be collected and
-            returned.
-        level (string): the level of child container to return to (session, acquisition, etc)
-        get_files (boolean): If True, return the files attached to the containers at `level`.
-            If false, return the containers themselves at `level`
-
-    Returns:
-        resulting_containers (list): a list of containers or files
-
-    """
-
-    log.debug(f"Got container {container.label}")
-    # Use the flywheel helper to get the containers at "level"
-    child_containers = fh.get_containers_at_level(fw, container, level)
-    log.debug(f"Initial Pass: found {len(child_containers)} containers")
-
-    # If we are also getting the files from those, loop through and concatenate all files to return
-    if get_files:
-        resulting_containers = []
-        for cc in child_containers:
-            resulting_containers.extend(
-                fh.get_containers_at_level(fw, cc.reload(), "file")
-            )
-
-    # Otherwise just return the containers we found
-    else:
-        resulting_containers = child_containers
-
-    log.debug(f"Final Pass: found {len(child_containers)} containers:")
-    for cc in resulting_containers:
-        if get_files:
-            log.debug(f"{cc.name}")
-        else:
-            log.debug(f"{cc.label}")
-
-    return resulting_containers
-
-
-def expand_metadata(meta_string, container):
-    metas = meta_string.split(".")
-    ct = container.container_type
-    name = fh.get_name(container)
-
-    first = metas.pop(0)
-    val = getattr(container, first)
-    temp_container = val
-    for meta in metas:
-        val = temp_container.get(meta)
-        if val:
-            temp_container = val
-        else:
-            log.warning(f"No metadata value {meta_string} found for {ct} {name}")
-            return None
-    return val
+def filter_matches(objects, name, file_type):
+    name_w_file_type = name + f".{file_type}"
+    for obj in objects:
+        if obj.get("name") == name or obj.get("name") == name_w_file_type:
+            yield obj
 
 
 def update(d, u, overwrite):
