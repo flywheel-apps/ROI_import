@@ -89,6 +89,7 @@ def get_roi_number(session):
 
 
 def get_session_files(fw, session):
+    log.debug('getting session acquisition files')
     for acq in session.acquisitions.iter():
         acq = acq.reload()
         for file_ in acq.files:

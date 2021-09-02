@@ -43,6 +43,7 @@ def main(csv_file, first_row, delimiter, api_key, dry_run, output_dir, destinati
         destination = fw.get(destination['id'])
         group = fw.get_group(destination.parents.group)
         project = fw.get_project(destination.parents.project)
+        log.debug(f'working in project {project.label}')
 
         # We now assume that this data is being uploaded to the group/project that the gear is being run on.
 

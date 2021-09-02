@@ -90,48 +90,61 @@ def import_data(fw, df, group, project, dry_run=False):
     # We will first loop through and find any and all matches for each subject/session combination.
     # Group by subject/session combos, to minimize loading.
     unique_subjects = df[ROI.SUBJECT_HDR].unique()
+    log.debug(f"{len(unique_subjects)} unique subjects found")
     # We are assuming that the group/project we're running in is the one we want to upload to.
     initial_matching = {}
     # First we will descend into the first unique subject label
     for subject_label in unique_subjects:
+        log.debug(f'looking for subject {subject_label}')
         # There may be multiple subjects, but they will all have the same label
-        subjects = project.subjects.iter_find(f'label={subject_label}')
+        subjects = project.subjects.iter_find(f'label="{subject_label}"')
 
         # Now we will generate a dataframe group for the unique sessions present in this subject(s)
         session_df = df[df[ROI.SUBJECT_HDR] == subject_label]
+        log.debug(f'{len(session_df)} entries for this subject.  Grouping by sessions')
         session_groups = session_df.groupby([ROI.SESSION_HDR])
+
 
         # Now we will loop through any subjects we found originally
         for subject in subjects:
+            log.debug(f'working on subject {subject.label}')
 
             # We will loop through our unique session groups
             for session_label, indexs in session_groups.groups.items():
+                log.debug(f'looking for session {session_label} - found {len(indexs)} entries')
                 # And search for sessions with that label on that subject.
-                sessions = subject.sessions.iter_find(f'label={session_label}')
+                sessions = subject.sessions.iter_find(f'label="{session_label}"')
 
                 # We may find multiple - it is possible for 2 subjects to have the same label, each with a session with
                 #  the same label.
                 # Loop through the sessions we find (hopefully only one)
                 for session in sessions:
+                    log.debug(f'looking for session {session.label}')
 
-                    # Get a list of all files attached to the acquisitions in the session identified
-                    # by the object location found above
-                    objects_for_processing = fu.get_session_files(fw, session)
+
 
                     # With each session, we must now search for each specific file
                     for index in indexs:
+                        # Get a list of all files attached to the acquisitions in the session identified
+                        # by the object location found above
+                        objects_for_processing = fu.get_session_files(fw, session)
+
                         series = session_df.loc[index]
                         object_name = series.get(ROI.MAPPING_COLUMN)
+                        log.debug(f'looking for object {object_name}')
 
                         lookup_string = f"{group_name}/{project_name}/{subject_label}/{session_label}/{object_name}"
 
                         matching_files = fu.filter_matches(objects_for_processing, object_name, series.get('file type'))
                         matching_files = [Match(file, group_name, project_name, subject_label, session_label) for file in matching_files]
 
+                        log.debug(f'found {len(matching_files)} matching files')
+
                         if index in initial_matching:
                             initial_matching[index].extend(matching_files)
                         else:
                             initial_matching[index] = matching_files
+                            log.debug(f'adding match {index}, {type(index)}')
 
     ############################################################################
     # STEP 2: Loop through aggregated matches and ensure there is only one     #
@@ -142,6 +155,7 @@ def import_data(fw, df, group, project, dry_run=False):
     # There aren't duplicates.
     for index in df.index:
         series = df.loc[index]
+        log.debug(f'looking for {index} in matches:')
 
         try:
             if index not in initial_matching:
